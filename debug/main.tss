@@ -1,0 +1,5 @@
+fun main() -> int {
+    b: str <- 'foo %f'
+    printf(b, 1.0)
+    return 1
+}
