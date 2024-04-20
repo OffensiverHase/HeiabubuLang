@@ -267,6 +267,8 @@ class IrBuilder:
                 value = self.builder.mul(left_value, right_value)
             case TT.DIV:
                 value = self.builder.sdiv(left_value, right_value)
+            case TT.MOD:
+                value = self.builder.srem(left_value, right_value)
             case TT.POW:
                 pass  # todo
             case TT.LESS:
@@ -315,6 +317,8 @@ class IrBuilder:
                 value = self.builder.fmul(left_value, right_value)
             case TT.DIV:
                 value = self.builder.fdiv(left_value, right_value)
+            case TT.MOD:
+                value = self.builder.frem(left_value, right_value)
             case TT.POW:
                 pass  # todo
             case TT.LESS:

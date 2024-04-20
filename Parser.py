@@ -1,3 +1,5 @@
+from typing import Callable
+
 from Context import Context
 from Error import Error, InvalidSyntaxError
 from Node import *
@@ -202,27 +204,11 @@ class Parser:
         return self.power()
 
     def term(self) -> Node | Error:
-        left = self.factor()
-        if isinstance(left, Error):
-            return left
-        while self.current_token.type == TT.MUL or self.current_token.type == TT.DIV:
-            operator = self.current_token
-            self.advance()
-            right = self.factor()
-            if isinstance(right, Error):
-                return right
-            left = BinOpNode(left, operator, right)
+        left = self.bin_op_node([TT.MUL, TT.DIV, TT.MOD], self.factor)
         return left
 
     def arithm_expr(self) -> Node | Error:
-        left = self.term()
-        while self.current_token.type == TT.PLUS or self.current_token.type == TT.MINUS:
-            operator = self.current_token
-            self.advance()
-            right = self.term()
-            if isinstance(right, Error):
-                return right
-            left = BinOpNode(left, operator, right)
+        left = self.bin_op_node([TT.PLUS, TT.MINUS], self.term)
         return left
 
     def comp_expr(self) -> Node | Error:
@@ -234,29 +220,11 @@ class Parser:
                 return val
             return UnaryOpNode(operator, val)
 
-        left = self.arithm_expr()
-        if isinstance(left, Error):
-            return left
-        while self.current_token.type in [TT.EQUALS, TT.UNEQUALS, TT.LESS, TT.GREATER, TT.LESSEQUAL, TT.GREATEREQUAL]:
-            operator = self.current_token
-            self.advance()
-            right = self.arithm_expr()
-            if isinstance(right, Error):
-                return right
-            return BinOpNode(left, operator, right)
+        left = self.bin_op_node([TT.EQUALS, TT.UNEQUALS, TT.LESS, TT.GREATER, TT.LESSEQUAL, TT.GREATEREQUAL], self.arithm_expr)
         return left
 
     def op_expr(self) -> Node | Error:
-        left = self.comp_expr()
-        if isinstance(left, Error):
-            return left
-        while self.current_token.type in [TT.AND, TT.OR, TT.XOR]:
-            operator = self.current_token
-            self.advance()
-            right = self.comp_expr()
-            if isinstance(right, Error):
-                return right
-            left = BinOpNode(left, operator, right)
+        left = self.bin_op_node([TT.AND, TT.OR, TT.XOR], self.comp_expr)
         return left
 
     def expression(self) -> Node | Error:
@@ -415,6 +383,19 @@ class Parser:
                 return self.expression()
             case _:
                 return self.err("Expected '{' or ':', got " + f"{self.current_token}")
+
+    def bin_op_node(self, tokens: List[TT], func: Callable[[], Node | Error]) -> Node | Error:
+        left = func()
+        if isinstance(left, Error):
+            return left
+        while self.current_token.type in tokens:
+            operator = self.current_token
+            self.advance()
+            right = func()
+            if isinstance(right, Error):
+                return right
+            left = BinOpNode(left, operator, right)
+        return left
 
     def err(self, details: str) -> Error:
         return InvalidSyntaxError(details, self.current_token.pos, self.context, 'parsing')

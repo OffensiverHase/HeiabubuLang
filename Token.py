@@ -35,13 +35,14 @@ class Token:
 
 
 class TT(Enum):
-    keywords = ['VAR', 'IF', 'THEN', 'ELSE', 'FOR', 'STEP', 'WHILE', 'FUN', 'RETURN', 'BREAK', 'CONTINUE', 'OBJECT']
+    keywords = ['VAR', 'IF', 'THEN', 'ELSE', 'FOR', 'STEP', 'WHILE', 'FUN', 'RETURN', 'BREAK', 'CONTINUE', 'OBJECT', 'PASS']
     INT = 'int'
     FLOAT = 'float'
     PLUS = '+'
     MINUS = '-'
     MUL = '*'
     DIV = '/'
+    MOD = '%'
     POW = '^'
     LPAREN = '('
     RPAREN = ')'
