@@ -120,7 +120,7 @@ class IrBuilder:
         name: str = node.name.value
         value_node = node.value
         value_type = None
-        if node.type is not None and node.type.value != 'str':  # todo
+        if node.type is not None:
             value_type = self.get_type(node.type.value)
 
         value, Type = self.resolve(value_node)
@@ -151,10 +151,11 @@ class IrBuilder:
         elif right_type == self.float_type or left_type == self.float_type:
             if right_type == self.int_type or left_type == self.int_type:
                 convert_left = right_type == self.float_type
-                value, Type = self.float_bin_op(left_value, right_value, convert_left, operator)  # todo
+                value, Type = self.float_bin_op(left_value, right_value, convert_left, operator)
 
         elif right_type == self.bool_type and left_type == self.bool_type:
             value, Type = self.bool_bin_op(left_value, right_value, operator)
+
 
         else:
             print_err(f'Cannot find operation {operator} on {left_type} and {right_type}')
@@ -187,14 +188,6 @@ class IrBuilder:
         global_fmt.initializer = c_fmt
 
         return global_fmt, global_fmt.type
-        # content: str = node.value.value
-        # char_bytes = [char.encode('utf-8') for char in content]
-        # length = len(content) + 2
-        # byte_array = bytearray(b"".join(char_bytes))
-        # byte_array += b'\x0a\x00'
-        # Type = ir.ArrayType(self.int_type, length)
-        # value = ir.Constant(Type, byte_array)
-        # return value, Type
 
     def visitIfNode(self, node: IfNode):
         condition = node.bool
@@ -228,7 +221,7 @@ class IrBuilder:
 
         match name:
             case 'printf':
-                ret = self.printf(params=args, return_type=types[0])  # todo
+                ret = self.printf(params=args, return_type=types[0])
                 ret_type = self.int_type
             case _:
                 func, ret_type = self.env.lookup(name)
@@ -305,7 +298,7 @@ class IrBuilder:
         return value, Type
 
     def float_bin_op(self, left_value: ir.Value, right_value: ir.Value, convert_left: bool, operator: Token) -> tuple[
-        ir.Value, ir.Type]:
+            ir.Value, ir.Type]:
         Type = self.float_type
         value = None
         if convert_left:
@@ -364,7 +357,7 @@ class IrBuilder:
                 print_err(f'Unknow operation {operator} on bool and bool!')  # todo
         return value, Type
 
-    def printf(self, params: list[ir.Value], return_type: ir.Type) -> None:
+    def printf(self, params: list[ir.Value], return_type: ir.Type) -> ir.CallInstr:
         func, _ = self.env.lookup('printf')
         c_str = self.builder.alloca(return_type)
         self.builder.store(params[0], c_str)
@@ -380,4 +373,3 @@ class IrBuilder:
         else:
             fmt_arg = self.builder.bitcast(self.module.get_global(f'__str_{self.counter}'), self.str_type)
             return self.builder.call(func, [fmt_arg, *rest_params])
-
