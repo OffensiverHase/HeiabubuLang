@@ -156,7 +156,6 @@ class IrBuilder:
         elif right_type == self.bool_type and left_type == self.bool_type:
             value, Type = self.bool_bin_op(left_value, right_value, operator)
 
-
         else:
             print_err(f'Cannot find operation {operator} on {left_type} and {right_type}')
 
@@ -228,6 +227,9 @@ class IrBuilder:
                 ret = self.builder.call(func, args)
         return ret, ret_type
 
+    def visitPassNode(self, node: PassNode):
+        self.builder.add(self.int_type(0), self.int_type(0), 'no-op')
+
     def resolve(self, node: Node, value_type: str | None = None) -> tuple[ir.Value, ir.Type]:
         match node:
             case NumberNode():
@@ -254,6 +256,8 @@ class IrBuilder:
             case StringNode():
                 node: StringNode = node
                 return self.visitStringNode(node)
+            case _:
+                print_err(f'Tried to resolve unknow node: {node.__class__.__name__}: {node}')
 
     def int_bin_op(self, left_value: ir.Value, right_value: ir.Value, operator: Token) -> tuple[ir.Value, ir.Type]:
         Type = self.int_type
@@ -300,7 +304,7 @@ class IrBuilder:
         return value, Type
 
     def float_bin_op(self, left_value: ir.Value, right_value: ir.Value, convert_left: bool, operator: Token) -> tuple[
-            ir.Value, ir.Type]:
+        ir.Value, ir.Type]:
         Type = self.float_type
         value = None
         if convert_left:

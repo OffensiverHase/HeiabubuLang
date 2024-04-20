@@ -1,5 +1,7 @@
 fun main() -> int {
+    pass
     b: str <- 'foo %f'
     printf(b, 2.0 * 3)
+    pass
     return 1
 }

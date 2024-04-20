@@ -317,6 +317,9 @@ class Parser:
                     if isinstance(body_node, Error):
                         return body_node
                     return FunDefNode(identifier, arg_list, arg_types, body_node, return_type)
+                case 'PASS':
+                    self.advance()
+                    return PassNode()
                 case 'RETURN':
                     self.advance()
                     if self.current_token.type == TT.NEWLINE or self.current_token.type == TT.EOF:

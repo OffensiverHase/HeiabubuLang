@@ -173,6 +173,11 @@ class ObjectReadNode(Node):
         return f'({self.obj}.{self.key})'
 
 
+class PassNode(Node):
+    def __str__(self):
+        return '(pass)'
+
+
 class ReturnNode(Node):
     def __init__(self, value: Node | None):
         self.value = value
@@ -183,9 +188,9 @@ class ReturnNode(Node):
 
 class BreakNode(Node):
     def __str__(self):
-        return 'break'
+        return '(break)'
 
 
 class ContinueNode(Node):
     def __str__(self):
-        return 'continue'
+        return '(continue)'
