@@ -4,7 +4,8 @@ from llvmlite import ir
 
 
 class Environment:
-    def __init__(self, records: dict[str, tuple[ir.Value, ir.Type]] | None = None, parent: Environment | None = None, name: str = 'main'):
+    def __init__(self, records: dict[str, tuple[ir.Value, ir.Type]] | None = None, parent: Environment | None = None,
+                 name: str = 'main'):
         self.records = records if records else {}
         self.parent = parent
         self.name = name

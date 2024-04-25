@@ -1,7 +1,4 @@
 fun main() -> int {
-    pass
-    b: str <- 'foo %f'
-    printf(b, 2.0 * 3)
-    pass
-    return 1
+    printf('%i\n', 21 * 5 + 3 * 4)
+    return 43
 }

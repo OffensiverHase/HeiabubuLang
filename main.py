@@ -1,9 +1,8 @@
 from Shell import start
-import sys
 
 
 def main():
-    start(sys.argv)
+    start()
 
 
 if __name__ == '__main__':

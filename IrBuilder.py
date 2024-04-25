@@ -1,5 +1,7 @@
 from llvmlite import ir
 
+import Error
+from Context import Context
 from Env import Environment
 from Methods import print_err
 from Node import *
@@ -11,7 +13,9 @@ def visit_unknown_node(node: Node):
 
 
 class IrBuilder:
-    def __init__(self):
+    def __init__(self, context: Context):
+        self.context = context
+
         self.int_type = ir.IntType(32)
         self.float_type = ir.DoubleType()
         self.bool_type = ir.IntType(1)
@@ -220,7 +224,9 @@ class IrBuilder:
 
         match name:
             case 'printf':
-                ret = self.printf(params=args, return_type=types[0])
+                if len(types) <= 0:
+                    return Error.RuntimeError("printf cannot be called without a argument, use `printf('\n'`", node.identifier.pos, self.context, 'compiling')
+                ret = self.printf(params=args, return_type=types[0] if types[0] else self.null_type)
                 ret_type = self.int_type
             case _:
                 func, ret_type = self.env.lookup(name)
@@ -257,7 +263,7 @@ class IrBuilder:
                 node: StringNode = node
                 return self.visitStringNode(node)
             case _:
-                print_err(f'Tried to resolve unknow node: {node.__class__.__name__}: {node}')
+                print_err(f'Tried to resolve unknown node: {node.__class__.__name__}: {node}')
 
     def int_bin_op(self, left_value: ir.Value, right_value: ir.Value, operator: Token) -> tuple[ir.Value, ir.Type]:
         Type = self.int_type
@@ -300,11 +306,11 @@ class IrBuilder:
             case TT.XOR:
                 value = self.builder.xor(left_value, right_value)
             case _:
-                print_err(f'Unknow operation {operator} on int and int!')  # todo
+                print_err(f'unknown operation {operator} on int and int!')  # todo
         return value, Type
 
     def float_bin_op(self, left_value: ir.Value, right_value: ir.Value, convert_left: bool, operator: Token) -> tuple[
-        ir.Value, ir.Type]:
+            ir.Value, ir.Type]:
         Type = self.float_type
         value = None
         if convert_left:
@@ -344,7 +350,7 @@ class IrBuilder:
                 value = self.builder.fcmp_ordered('!=', left_value, right_value)
                 Type = self.bool_type
             case _:
-                print_err(f'Unknow operation {operator} on float and float!')  # todo
+                print_err(f'unknown operation {operator} on float and float!')  # todo
         return value, Type
 
     def bool_bin_op(self, left_value: ir.Value, right_value: ir.Value, operator: Token) -> tuple[ir.Value, ir.Type]:
@@ -362,7 +368,7 @@ class IrBuilder:
             case TT.UNEQUALS:
                 value = self.builder.icmp_unsigned(left_value, '!=', right_value)
             case _:
-                print_err(f'Unknow operation {operator} on bool and bool!')  # todo
+                print_err(f'unknown operation {operator} on bool and bool!')  # todo
         return value, Type
 
     def printf(self, params: list[ir.Value], return_type: ir.Type) -> ir.CallInstr:

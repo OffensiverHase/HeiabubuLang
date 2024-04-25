@@ -15,7 +15,7 @@ from Methods import fail, print_err
 from Parser import Parser
 
 
-def start(args: list[str]):
+def start():
     args = parse_args()
     for arg in args.d:
         globals()[arg.upper() + '_DEBUG'] = True
@@ -65,7 +65,7 @@ def run(text: str):
     if AST_DEBUG:
         print('\nEvaluated to the following AST:')
         print('\t' + ast.__str__())
-    builder = IrBuilder()
+    builder = IrBuilder(ctx)
     builder.build(ast)
     module = builder.module
     module.triple = llvm.get_default_triple()
