@@ -1,4 +1,7 @@
 fun main() -> int {
-    printf('%i\n', 21 * 5 + 3 * 4)
+    a <- 2
+    # while false:
+    for i <- 0 .. 10 step a:
+        printf('%i', i)
     return 43
 }

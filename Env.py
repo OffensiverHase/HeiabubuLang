@@ -15,12 +15,12 @@ class Environment:
         return value
 
     def lookup(self, name: str) -> tuple[ir.Value, ir.Type]:
-        return self.resolve(name)
+        return self.__resolve(name)
 
-    def resolve(self, name: str) -> tuple[ir.Value, ir.Type] | None:
+    def __resolve(self, name: str) -> tuple[ir.Value, ir.Type] | None:
         if name in self.records:
             return self.records[name]
         elif self.parent:
-            return self.parent.resolve(name)
+            return self.parent.__resolve(name)
         else:
             return None

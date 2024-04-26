@@ -1,6 +1,6 @@
 from llvmlite import ir
+from llvmlite.ir import CompareInstr
 
-import Error
 from Context import Context
 from Env import Environment
 from Methods import print_err
@@ -24,6 +24,9 @@ class IrBuilder:
         self.null_type = ir.VoidType()
 
         self.counter = -1
+
+        self.breaks: list[ir.Block] = []
+        self.continues: list[ir.Block] = []
 
         self.module = ir.Module('main')
 
@@ -67,9 +70,9 @@ class IrBuilder:
     def build(self, node: Node):
         self.visit(node)
 
-    def visit(self, node: Node):
+    def visit(self, node: Node) -> tuple[ir.Value, ir.Type] | None:
         method = getattr(self, 'visit' + node.__class__.__name__, visit_unknown_node)
-        method(node)
+        return method(node)
 
     def visitNumberNode(self, node: NumberNode) -> tuple[ir.Value, ir.Type]:
         Type = self.int_type if node.token.type == TT.INT else self.float_type
@@ -118,14 +121,17 @@ class IrBuilder:
     def visitReturnNode(self, node: ReturnNode):
         value_node = node.value
         value, Type = self.resolve(value_node)
-        self.builder.ret(value)
+
+        if isinstance(Type, ir.PointerType):
+            ptr_to_array = self.builder.gep(value, [self.int_type(0), self.int_type(0)])
+            self.builder.ret(ptr_to_array)
+        else:
+            self.builder.ret(value)
 
     def visitVarAssignNode(self, node: VarAssignNode):
         name: str = node.name.value
         value_node = node.value
-        value_type = None
-        if node.type is not None:
-            value_type = self.get_type(node.type.value)
+        value_type = self.get_type(node.type.value) if node.type else None
 
         value, Type = self.resolve(value_node)
 
@@ -137,7 +143,11 @@ class IrBuilder:
             self.builder.store(value, ptr)
             self.env.define(name, ptr, Type)
         else:
-            ptr, Type = self.env.lookup(name)
+            ptr, Type2 = self.env.lookup(name)
+            if value_type != Type2 and value_type is not None:
+                print_err(f'Type Error: expected {value_type}, got {Type2}')
+            if Type != Type2:
+                print_err(f'Type Error: expected {Type2}, got {Type}')
             self.builder.store(value, ptr)
 
     def visitVarAccessNode(self, node: VarAccessNode) -> tuple[ir.Value, ir.Type]:
@@ -209,6 +219,102 @@ class IrBuilder:
                 with otherwise:
                     self.visit(alternative)
 
+    def visitWhileNode(self, node: WhileNode):
+        condition = node.bool
+        body = node.expr
+
+        test, Type = self.resolve(condition)
+
+        consequence = self.builder.append_basic_block(f'while_loop_entry_{self.increment_counter()}')
+        otherwise = self.builder.append_basic_block(f'while_loop_otherwise_{self.counter}')
+
+        self.breaks.append(otherwise)
+        self.continues.append(consequence)
+
+        self.builder.cbranch(test, consequence, otherwise)
+
+        self.builder.position_at_start(consequence)
+        self.visit(body)
+        test, Type = self.resolve(condition)
+        self.builder.cbranch(test, consequence, otherwise)
+        self.builder.position_at_start(otherwise)
+
+        self.breaks.pop()
+        self.continues.pop()
+
+    def visitBreakNode(self, node: BreakNode):
+        if len(self.breaks) == 0:
+            print_err(f'break outside of while or for!')
+        self.builder.branch(self.breaks[-1])
+
+    def visitContinueNode(self, node: ContinueNode):
+        if len(self.continues) == 0:
+            print_err(f'break outside of while of for!')
+        self.builder.branch(self.continues[-1])
+
+    def visitForNode(self, node: ForNode):
+        var_name = node.identifier.value
+        var_value, var_type = self.resolve(node.from_node)
+        step_value, step_type = self.resolve(node.step)
+        body: Node = node.expr
+        to_value, to_type = self.resolve(node.to)
+
+        if var_type != step_type != to_type:
+            print_err('For loop variable, step and to types have to match!')
+
+        loop_cond_block = self.builder.append_basic_block(f'loop_cond_{self.increment_counter()}')
+        loop_body_block = self.builder.append_basic_block(f'loop_body_{self.counter}')
+        loop_inc_block = self.builder.append_basic_block(f'loop_inc_block_{self.counter}')
+        loop_exit_block = self.builder.append_basic_block(f'loop_exit_block_{self.counter}')
+
+        ptr = self.builder.alloca(var_type)
+        self.builder.store(var_value, ptr)
+        self.builder.branch(loop_cond_block)
+        prev_env = self.env
+        self.env = Environment(None, prev_env, f'for_loop_{self.counter}')
+        self.env.define(var_name, ptr, var_type)
+
+        self.builder.position_at_end(loop_cond_block)
+        loop_var_value = self.builder.load(ptr)
+        cond: CompareInstr | None = None
+        if var_type == self.int_type or var_type == self.byte_type:
+            cond = self.builder.icmp_signed('<', loop_var_value, to_value)
+        elif var_type == self.float_type:
+            cond = self.builder.fcmp_ordered('<', loop_var_value, to_value)
+        else:
+            print_err(f'Unknown types for for loop, got {var_type}, expected int, float, or byte')
+        self.builder.cbranch(cond, loop_body_block, loop_exit_block)
+
+        self.builder.position_at_end(loop_body_block)
+        self.visit(body)
+        self.builder.branch(loop_inc_block)
+
+        self.builder.position_at_end(loop_inc_block)
+        old_value = self.builder.load(ptr)
+        new_value = self.builder.add(old_value, step_value) if not var_type == self.float_type else self.builder.fadd(old_value, step_value)
+        self.builder.store(new_value, ptr)
+        self.builder.branch(loop_cond_block)
+
+        self.builder.position_at_end(loop_exit_block)
+
+        self.env = prev_env
+
+        # var_assign_node = VarAssignNode(var_name, None, var_value)
+        # self.visitVarAssignNode(var_assign_node)
+        #
+        # while_test = BinOpNode(VarAccessNode(var_name), Token(TT.LESS, None, var_name.pos), to)
+        #
+        # add_node = VarAssignNode(var_name, None, BinOpNode(VarAccessNode(var_name), Token(TT.PLUS, None, var_name.pos), step))
+        # if isinstance(body, StatementNode):
+        #     body: StatementNode = body
+        #     body.expressions.append(add_node)
+        # else:
+        #     body = StatementNode([body, add_node])
+        #
+        # while_node = WhileNode(while_test, body)
+        # self.visit(while_node)
+
+
     def visitFunCallNode(self, node: FunCallNode) -> tuple[ir.Instruction, ir.Type]:
         name = node.identifier.value
         params = node.args
@@ -225,7 +331,7 @@ class IrBuilder:
         match name:
             case 'printf':
                 if len(types) <= 0:
-                    return Error.RuntimeError("printf cannot be called without a argument, use `printf('\n'`", node.identifier.pos, self.context, 'compiling')
+                    print_err("printf cannot be called without a argument, use `printf('\n')`")
                 ret = self.printf(params=args, return_type=types[0] if types[0] else self.null_type)
                 ret_type = self.int_type
             case _:
@@ -310,7 +416,7 @@ class IrBuilder:
         return value, Type
 
     def float_bin_op(self, left_value: ir.Value, right_value: ir.Value, convert_left: bool, operator: Token) -> tuple[
-            ir.Value, ir.Type]:
+        ir.Value, ir.Type]:
         Type = self.float_type
         value = None
         if convert_left:
