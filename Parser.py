@@ -334,6 +334,13 @@ class Parser:
                 case 'CONTINUE':
                     self.advance()
                     return ContinueNode()
+                case 'IMPORT':
+                    self.advance()
+                    if self.current_token.type != TT.IDENTIFIER:
+                        return self.err(f'Expected file path as identifier, got {self.current_token}')
+                    file_path = self.current_token
+                    self.advance()
+                    return ImportNode(file_path)
         elif self.current_token.type == TT.IDENTIFIER:
             var_name = self.current_token
             if self.peek().type in [TT.COLON, TT.ASSIGN]:

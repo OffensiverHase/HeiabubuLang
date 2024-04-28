@@ -1,7 +1,12 @@
 fun main() -> int {
-    a <- 2
-    # while false:
-    for i <- 0 .. 10 step a:
-        printf('%i', i)
+    a <- 0
+    while true {
+        a <- a + 1
+        b <- 1
+        c <- 1
+        d <- 1
+        e <- 1
+        printf('%i\n', a)
+    }
     return 43
 }

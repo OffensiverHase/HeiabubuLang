@@ -35,7 +35,7 @@ class Token:
 
 
 class TT(Enum):
-    keywords = ['VAR', 'IF', 'THEN', 'ELSE', 'FOR', 'STEP', 'WHILE', 'FUN', 'RETURN', 'BREAK', 'CONTINUE', 'OBJECT', 'PASS']
+    keywords = ['VAR', 'IF', 'THEN', 'ELSE', 'FOR', 'STEP', 'WHILE', 'FUN', 'RETURN', 'BREAK', 'CONTINUE', 'OBJECT', 'PASS', 'IMPORT']
     INT = 'int'
     FLOAT = 'float'
     PLUS = '+'

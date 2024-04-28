@@ -1,6 +1,6 @@
 from typing import List
 
-from Token import Token
+from Token import Token, TT
 
 
 class Node:
@@ -44,13 +44,16 @@ class VarAccessNode(Node):
 
 
 class VarAssignNode(Node):
-    def __init__(self, name: Token, type_token: Token, value: Node):
+    def __init__(self, name: Token, type_token: Token | None, value: Node):
         self.name = name
         self.type = type_token
         self.value = value
 
     def __str__(self):
-        return f'({self.name}: {self.type} <- {self.value})'
+        if self.type:
+            return f'({self.name}: {self.type} <- {self.value})'
+        else:
+            return f'({self.name} <- {self.value})'
 
 
 class IfNode(Node):
@@ -77,11 +80,11 @@ class ForNode(Node):
         self.identifier = identifier
         self.from_node = from_node
         self.to = to
-        self.step = step
+        self.step = step if step else NumberNode(Token(TT.INT, 1, identifier.pos))
         self.expr = expr
 
     def __str__(self):
-        if self.step:
+        if self.step != 1:
             return f'(for {self.identifier} <- {self.from_node} .. {self.to} step {self.step} { {self.expr} })'
         else:
             return f'(for {self.identifier} <- {self.from_node} .. {self.to} { {self.expr} })'
@@ -171,6 +174,14 @@ class ObjectReadNode(Node):
 
     def __str__(self):
         return f'({self.obj}.{self.key})'
+
+
+class ImportNode(Node):
+    def __init__(self, file_path: Token):
+        self.file_path = file_path
+
+    def __str__(self):
+        return f'(import {self.file_path})'
 
 
 class PassNode(Node):

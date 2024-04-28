@@ -1,10 +1,16 @@
+import os.path
+
 from llvmlite import ir
 from llvmlite.ir import CompareInstr
 
+import Shell
 from Context import Context
 from Env import Environment
+from Error import Error
+from Lexer import Lexer
 from Methods import print_err
 from Node import *
+from Parser import Parser
 from Token import TT
 
 
@@ -27,6 +33,8 @@ class IrBuilder:
 
         self.breaks: list[ir.Block] = []
         self.continues: list[ir.Block] = []
+
+        self.global_imports = {}
 
         self.module = ir.Module('main')
 
@@ -291,7 +299,8 @@ class IrBuilder:
 
         self.builder.position_at_end(loop_inc_block)
         old_value = self.builder.load(ptr)
-        new_value = self.builder.add(old_value, step_value) if not var_type == self.float_type else self.builder.fadd(old_value, step_value)
+        new_value = self.builder.add(old_value, step_value) if not var_type == self.float_type else self.builder.fadd(
+            old_value, step_value)
         self.builder.store(new_value, ptr)
         self.builder.branch(loop_cond_block)
 
@@ -299,21 +308,27 @@ class IrBuilder:
 
         self.env = prev_env
 
-        # var_assign_node = VarAssignNode(var_name, None, var_value)
-        # self.visitVarAssignNode(var_assign_node)
-        #
-        # while_test = BinOpNode(VarAccessNode(var_name), Token(TT.LESS, None, var_name.pos), to)
-        #
-        # add_node = VarAssignNode(var_name, None, BinOpNode(VarAccessNode(var_name), Token(TT.PLUS, None, var_name.pos), step))
-        # if isinstance(body, StatementNode):
-        #     body: StatementNode = body
-        #     body.expressions.append(add_node)
-        # else:
-        #     body = StatementNode([body, add_node])
-        #
-        # while_node = WhileNode(while_test, body)
-        # self.visit(while_node)
+    def visitImportNode(self, node: ImportNode):
+        file_path = node.file_path.value
+        if self.global_imports.get(file_path) is not None:
+            print_err(f'Already imported {file_path} globally!')
+            return
 
+        file_code: str | None = None
+
+        with open(os.path.abspath(file_path), 'r') as f:
+            file_code = f.read()
+
+        ctx = Context(self.context, f'import_{file_path}', self.context.var_map, file_path, file_code)
+        lexer = Lexer(ctx)
+        tokens = lexer.make_tokens()
+        parser = Parser(tokens, ctx)
+        ast = parser.parse()
+        if isinstance(ast, Error):
+            print_err(f'Error while importing file {file_path}: {ast}')
+
+        self.visit(ast)
+        self.global_imports[file_path] = ast
 
     def visitFunCallNode(self, node: FunCallNode) -> tuple[ir.Instruction, ir.Type]:
         name = node.identifier.value
