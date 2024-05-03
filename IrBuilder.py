@@ -1,7 +1,8 @@
 import os.path
+from typing import Tuple
 
 from llvmlite import ir
-from llvmlite.ir import CompareInstr
+from llvmlite.ir import CompareInstr, GlobalVariable
 
 from Context import Context
 from Env import Environment
@@ -58,15 +59,14 @@ class IrBuilder:
         return self.counter
 
     def init_builtins(self):
-        def init_bool() -> tuple[ir.GlobalVariable, ir.GlobalVariable]:
-            bool_type = self.bool_type
+        def init_bool() -> tuple[GlobalVariable, GlobalVariable]:
 
-            true_var = ir.GlobalVariable(self.module, bool_type, 'true')
-            true_var.initializer = ir.Constant(bool_type, 1)
+            true_var = ir.GlobalVariable(self.module, self.bool_type, 'true')
+            true_var.initializer = self.bool_type(1)
             true_var.global_constant = True
 
-            false_var = ir.GlobalVariable(self.module, bool_type, 'false')
-            false_var.initializer = ir.Constant(bool_type, 0)
+            false_var = ir.GlobalVariable(self.module, self.bool_type, 'false')
+            false_var.initializer = self.bool_type(0)
             false_var.global_constant = True
 
             return true_var, false_var
@@ -128,10 +128,13 @@ class IrBuilder:
         self.env.define(name, func, return_type)
 
         self.visit(body)
+        if return_type == self.null_type and not self.builder.block.is_terminated:
+            self.builder.ret_void()
 
         self.env = prev_env
         self.env.define(name, func, return_type)
         self.builder = prev_builder
+        self.var_block = None
 
     def visitReturnNode(self, node: ReturnNode):
         value_node = node.value
@@ -175,7 +178,12 @@ class IrBuilder:
             print_err(f'Type Error: expected {value_type}, got {Type}')
 
         if self.env.lookup(name) is None:
-            ptr = self.builder.alloca(Type)
+
+            alloc_builder = ir.IRBuilder()  # so that the allocation happens at the beginning of the function block!
+            alloc_builder.position_at_start(self.var_block)
+            ptr = alloc_builder.alloca(Type)
+            self.builder._anchor += 1  # add 1 to the current line, because a instr has been added before
+
             self.builder.store(value, ptr)
             self.env.define(name, ptr, Type)
         else:
@@ -378,7 +386,7 @@ class IrBuilder:
             case 'printf':
                 if len(types) <= 0:
                     print_err("printf cannot be called without a argument, use `printf('\n')`")
-                ret = self.printf(params=args, return_type=types[0] if types[0] else self.null_type)
+                ret = self.printf(params=args, return_type=types[0])
                 ret_type = self.int_type
             case _:
                 func, ret_type = self.env.lookup(name)

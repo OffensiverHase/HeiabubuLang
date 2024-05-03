@@ -1,12 +1,8 @@
-
-fun b() -> null {
-    c <- 1
+fun main() {
+    a <- 0
+    while true {
+        a <- a + 1
+        b <- 1
+    }
     return
-}
-
-fun main() -> int {
-    a <- 1
-    b()
-    printf('%i', c)
-    return a
 }

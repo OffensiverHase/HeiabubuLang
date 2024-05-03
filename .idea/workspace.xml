@@ -4,16 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="bfe04db2-d8d8-4286-a2bd-6d3eaa2f1670" name="Changes" comment="add imports">
-      <change afterPath="$PROJECT_DIR$/debug/test" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/debug/test.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+    <list default="true" id="bfe04db2-d8d8-4286-a2bd-6d3eaa2f1670" name="Changes" comment="add lists">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/IrBuilder.py" beforeDir="false" afterPath="$PROJECT_DIR$/IrBuilder.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Lexer.py" beforeDir="false" afterPath="$PROJECT_DIR$/Lexer.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Parser.py" beforeDir="false" afterPath="$PROJECT_DIR$/Parser.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/debug/main" beforeDir="false" afterPath="$PROJECT_DIR$/debug/main" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/debug/main.tss" beforeDir="false" afterPath="$PROJECT_DIR$/debug/main.tss" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/debug/test" beforeDir="false" afterPath="$PROJECT_DIR$/debug/test" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/debug/test.c" beforeDir="false" afterPath="$PROJECT_DIR$/debug/test.c" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -60,7 +57,7 @@
     "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
   }
 }]]></component>
-  <component name="RunManager" selected="Python.main.tss">
+  <component name="RunManager" selected="Python.run">
     <configuration name="main.tss" type="PythonConfigurationType" factoryName="Python">
       <module name="TenessPy" />
       <option name="ENV_FILES" value="" />
@@ -200,7 +197,15 @@
       <option name="project" value="LOCAL" />
       <updated>1714320024197</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="add lists">
+      <option name="closed" value="true" />
+      <created>1714737170840</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1714737170840</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -215,7 +220,8 @@
     <MESSAGE value="bug fixes" />
     <MESSAGE value="add for and while loops" />
     <MESSAGE value="add imports" />
-    <option name="LAST_COMMIT_MESSAGE" value="add imports" />
+    <MESSAGE value="add lists" />
+    <option name="LAST_COMMIT_MESSAGE" value="add lists" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -227,12 +233,12 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/IrBuilder.py</url>
-          <line>435</line>
+          <line>448</line>
           <option name="timeStamp" value="48" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/IrBuilder.py</url>
-          <line>291</line>
+          <line>304</line>
           <option name="timeStamp" value="69" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -242,13 +248,18 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/IrBuilder.py</url>
-          <line>98</line>
+          <line>104</line>
           <option name="timeStamp" value="83" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/IrBuilder.py</url>
-          <line>165</line>
+          <line>173</line>
           <option name="timeStamp" value="84" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/IrBuilder.py</url>
+          <line>184</line>
+          <option name="timeStamp" value="85" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
