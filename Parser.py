@@ -350,6 +350,18 @@ class Parser:
                 if self.current_token.type == TT.TYPE:
                     type_token = self.current_token
                     self.advance()
+                    if type_token.value == 'list':
+                        if self.current_token.type != TT.LESS:
+                            return self.err(f"Expected '<type>', got {self.current_token}")
+                        self.advance()
+                        if self.current_token.type != TT.TYPE:
+                            return self.err(f"Expected '<type>', got {self.current_token}")
+                        type_name = self.current_token.value
+                        self.advance()
+                        if self.current_token.type != TT.GREATER:
+                            return self.err(f"Expected '<type>', got {self.current_token}")
+                        self.advance()
+                        type_token.value += f':{type_name}'
                     if self.current_token.type != TT.ASSIGN:
                         return self.err(f"Expected '<-', got {self.current_token}")
                     self.advance()

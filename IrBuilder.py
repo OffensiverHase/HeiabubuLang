@@ -3,7 +3,6 @@ import os.path
 from llvmlite import ir
 from llvmlite.ir import CompareInstr
 
-import Shell
 from Context import Context
 from Env import Environment
 from Error import Error
@@ -40,12 +39,19 @@ class IrBuilder:
 
         self.builder = ir.IRBuilder()
 
+        self.var_block: ir.Block | None = None
+
         self.env = Environment()
 
         self.init_builtins()
 
     def get_type(self, name: str) -> ir.Type:
-        return self.__getattribute__(name + '_type')
+        if name.startswith('list'):
+            list_type = name.removeprefix('list:')
+            list_type = self.get_type(list_type)
+            return ir.PointerType(list_type)
+        else:
+            return self.__getattribute__(name + '_type')
 
     def increment_counter(self) -> int:
         self.counter += 1
@@ -100,6 +106,7 @@ class IrBuilder:
         fun_type = ir.FunctionType(return_type, param_types)
         func = ir.Function(self.module, fun_type, name)
         block = func.append_basic_block(f'{name}_entry')
+        self.var_block = block
 
         prev_builder = self.builder
         prev_env = self.env
@@ -128,6 +135,11 @@ class IrBuilder:
 
     def visitReturnNode(self, node: ReturnNode):
         value_node = node.value
+
+        if not value_node:
+            self.builder.ret_void()
+            return
+
         value, Type = self.resolve(value_node)
 
         if isinstance(Type, ir.PointerType):
@@ -135,6 +147,22 @@ class IrBuilder:
             self.builder.ret(ptr_to_array)
         else:
             self.builder.ret(value)
+
+    def visitListNode(self, node: ListNode) -> tuple[ir.Value, ir.Type]:
+        values = node.content
+        if len(values) == 0:
+            lst = ir.Constant(ir.ArrayType(self.int_type, 0), [])
+            return lst, lst.type
+
+        _, list_type = self.resolve(values[0])
+        resolved_values: list[ir.Value] = []
+        for v in values:
+            value, Type = self.visit(v)
+            if Type != list_type:
+                print_err(f'Expected {list_type}, got {Type}')
+            resolved_values.append(value)
+        lst = ir.ArrayType(list_type, len(values))(resolved_values)
+        return lst, lst.type
 
     def visitVarAssignNode(self, node: VarAssignNode):
         name: str = node.name.value
@@ -177,6 +205,9 @@ class IrBuilder:
 
         elif right_type == self.bool_type and left_type == self.bool_type:
             value, Type = self.bool_bin_op(left_value, right_value, operator)
+
+        elif right_type == self.int_type and isinstance(left_type, ir.ArrayType):
+            value, Type = self.list_bin_op(left_value, right_value, operator)
 
         else:
             print_err(f'Cannot find operation {operator} on {left_type} and {right_type}')
@@ -383,6 +414,9 @@ class IrBuilder:
             case StringNode():
                 node: StringNode = node
                 return self.visitStringNode(node)
+            case ListNode():
+                node: ListNode = node
+                return self.visitListNode(node)
             case _:
                 print_err(f'Tried to resolve unknown node: {node.__class__.__name__}: {node}')
 
@@ -477,7 +511,7 @@ class IrBuilder:
     def bool_bin_op(self, left_value: ir.Value, right_value: ir.Value, operator: Token) -> tuple[ir.Value, ir.Type]:
         Type = self.bool_type
         value = None
-        match operator:
+        match operator.type:
             case TT.AND:
                 value = self.builder.and_(left_value, right_value)
             case TT.OR:
@@ -490,6 +524,16 @@ class IrBuilder:
                 value = self.builder.icmp_unsigned(left_value, '!=', right_value)
             case _:
                 print_err(f'unknown operation {operator} on bool and bool!')  # todo
+        return value, Type
+
+    def list_bin_op(self, left_value: ir.Value, right_value: ir.Value, operator: Token) -> tuple[ir.Value, ir.Type]:
+        value, Type = None, None
+        match operator.type:
+            case TT.GET:
+                value = self.builder.gep(left_value, [right_value, right_value])
+                Type = value.type
+            case _:
+                print_err(f'unḱnown operation {operator} on list and int')
         return value, Type
 
     def printf(self, params: list[ir.Value], return_type: ir.Type) -> ir.CallInstr:

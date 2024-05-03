@@ -1,12 +1,12 @@
+
+fun b() -> null {
+    c <- 1
+    return
+}
+
 fun main() -> int {
-    a <- 0
-    while true {
-        a <- a + 1
-        b <- 1
-        c <- 1
-        d <- 1
-        e <- 1
-        printf('%i\n', a)
-    }
-    return 43
+    a <- 1
+    b()
+    printf('%i', c)
+    return a
 }

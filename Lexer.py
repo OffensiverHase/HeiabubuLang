@@ -15,7 +15,7 @@ class Lexer:
         self.pos = Position(-1, 0, -1)
         self.current_char: str | None = None
         self.escape_chars = dict(n='\n', t='\t')
-        self.types = dict(INT='int', FLOAT='float', NULL='null', BOOL='bool', STR='str')
+        self.types = dict(INT='int', FLOAT='float', NULL='null', BOOL='bool', STR='str', BYTE='byte', LIST='list')
         self._advance()
 
     def _advance(self) -> None:
