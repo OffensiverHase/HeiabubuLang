@@ -41,8 +41,6 @@ class IrBuilder:
 
         self.var_block: ir.Block | None = None
 
-        self.module.get_identified_types()
-
         self.env = Environment()
 
         self.init_builtins()
@@ -232,8 +230,8 @@ class IrBuilder:
         elif right_type == self.bool_type and left_type == self.bool_type:
             value, Type = self.bool_bin_op(left_value, right_value, operator)
 
-        elif right_type == self.int_type and isinstance(left_type, ir.PointerType) and isinstance(left_type.pointee, ir.ArrayType):
-            value, Type = self.list_bin_op(left_value, right_value, operator)
+        elif right_type == self.int_type and isinstance(left_type, ir.PointerType) and isinstance(left_type.pointee, ir.ArrayType) or isinstance(left_type.pointee, ir.IntType):
+            value, Type = self.list_bin_op(left_value, right_value, operator, isinstance(left_type.pointee, ir.ArrayType))
 
         else:
             print_err(f'Cannot find operation {operator} on {left_type} and {right_type}')
@@ -552,11 +550,13 @@ class IrBuilder:
                 print_err(f'unknown operation {operator} on bool and bool!')  # todo
         return value, Type
 
-    def list_bin_op(self, left_value: ir.Value, right_value: ir.Value, operator: Token) -> tuple[ir.Value, ir.Type]:
+    def list_bin_op(self, left_value: ir.Value, right_value: ir.Value, operator: Token, bitcast: bool) -> tuple[ir.Value, ir.Type]:
         value, Type = None, None
         match operator.type:
             case TT.GET:
-                ptr = self.builder.gep(left_value, [self.int_type(0), right_value])
+                if bitcast:
+                    self.builder.bitcast(left_value, self.int_type.as_pointer())
+                ptr = self.builder.gep(left_value, [right_value])
                 value = self.builder.load(ptr)
                 Type = value.type
             case _:

@@ -1,5 +1,10 @@
+int* lst() {
+    int ret[] = {1,2,3};
+    return ret;
+}
+
 int main() {
-    int one = 1;
-    int a[] = {one,2,3,4,5};
-    return a[10];
+    int* arr = lst();
+    arr[1];
+    return 0;
 }

@@ -1,5 +1,8 @@
+fun lst() -> list<int>:
+    return [1, 2, 3]
+
 fun main() -> int {
-    a <- 10
-    b <- [a,2,3,4,5]
-    return b[3]
+    a: list<int> <- [1,2]; # lst()
+    printf('%i', a[0])
+    return 0
 }
