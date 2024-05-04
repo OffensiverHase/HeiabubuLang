@@ -1,8 +1,5 @@
-fun main() {
-    a <- 0
-    while true {
-        a <- a + 1
-        b <- 1
-    }
-    return
+fun main() -> int {
+    a <- 10
+    b <- [a,2,3,4,5]
+    return b[3]
 }

@@ -1,11 +1,5 @@
-#include <stdbool.h>
-#include <stdio.h>
-
 int main() {
-  int a = 0;
-  while (true) {
-      a = a + 1;
-      int b = 1;
-  }
-  return 43;
+    int one = 1;
+    int a[] = {one,2,3,4,5};
+    return a[10];
 }

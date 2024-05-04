@@ -1,5 +1,4 @@
 import os.path
-from typing import Tuple
 
 from llvmlite import ir
 from llvmlite.ir import CompareInstr, GlobalVariable
@@ -41,6 +40,8 @@ class IrBuilder:
         self.builder = ir.IRBuilder()
 
         self.var_block: ir.Block | None = None
+
+        self.module.get_identified_types()
 
         self.env = Environment()
 
@@ -164,8 +165,25 @@ class IrBuilder:
             if Type != list_type:
                 print_err(f'Expected {list_type}, got {Type}')
             resolved_values.append(value)
-        lst = ir.ArrayType(list_type, len(values))(resolved_values)
-        return lst, lst.type
+
+        alloc_builder = ir.IRBuilder()
+        alloc_builder.position_at_start(self.var_block)
+        list_ptr = alloc_builder.alloca(ir.ArrayType(list_type, len(values)))
+        self.builder._anchor += 1
+
+        begin = self.builder.gep(list_ptr, [self.int_type(0), self.int_type(0)])
+        self.builder.store(resolved_values[0], begin)
+
+        resolved_values.pop(0)
+
+        last_ptr = begin
+
+        for i, resolved in enumerate(resolved_values):
+            element_ptr = self.builder.gep(last_ptr, [self.int_type(1)])
+            self.builder.store(resolved, element_ptr)
+            last_ptr = element_ptr
+
+        return list_ptr, list_ptr.type
 
     def visitVarAssignNode(self, node: VarAssignNode):
         name: str = node.name.value
@@ -214,7 +232,7 @@ class IrBuilder:
         elif right_type == self.bool_type and left_type == self.bool_type:
             value, Type = self.bool_bin_op(left_value, right_value, operator)
 
-        elif right_type == self.int_type and isinstance(left_type, ir.ArrayType):
+        elif right_type == self.int_type and isinstance(left_type, ir.PointerType) and isinstance(left_type.pointee, ir.ArrayType):
             value, Type = self.list_bin_op(left_value, right_value, operator)
 
         else:
@@ -538,7 +556,8 @@ class IrBuilder:
         value, Type = None, None
         match operator.type:
             case TT.GET:
-                value = self.builder.gep(left_value, [right_value, right_value])
+                ptr = self.builder.gep(left_value, [self.int_type(0), right_value])
+                value = self.builder.load(ptr)
                 Type = value.type
             case _:
                 print_err(f'unḱnown operation {operator} on list and int')
