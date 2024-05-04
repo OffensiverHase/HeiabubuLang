@@ -313,6 +313,18 @@ class Parser:
                             return self.err(f'Expected type, got {self.current_token}')
                         return_type = self.current_token
                         self.advance()
+                        if return_type.value == 'list':
+                            if self.current_token.type != TT.LESS:
+                                return self.err(f"Expected '<type>', got {self.current_token}")
+                            self.advance()
+                            if self.current_token.type != TT.TYPE:
+                                return self.err(f"Expected '<type>', got {self.current_token}")
+                            type_name = self.current_token.value
+                            self.advance()
+                            if self.current_token.type != TT.GREATER:
+                                return self.err(f"Expected '<type>', got {self.current_token}")
+                            self.advance()
+                            return_type.value += f':{type_name}'
                     body_node = self.body_expr()
                     if isinstance(body_node, Error):
                         return body_node
