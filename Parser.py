@@ -77,8 +77,8 @@ class Parser:
                         value = self.atom()
                         if isinstance(value, Error):
                             return value
-                        return ObjectAssignNode(VarAccessNode(token), key, value)
-                    return ObjectReadNode(VarAccessNode(token), key)
+                        return StructAssignNode(VarAccessNode(token), key, value)
+                    return StructReadNode(VarAccessNode(token), key)
                 return VarAccessNode(token)
             case TT.LPAREN:
                 self.advance()
@@ -131,32 +131,6 @@ class Parser:
                         if isinstance(else_expr, Error):
                             return else_expr
                         return IfNode(bool_expr, if_expr, else_expr)
-                    case 'OBJECT':
-                        self.advance()
-                        if self.current_token.type != TT.LCURLY:
-                            return self.err("Expected '{' or ':', got " + f"{self.current_token}")
-                        self.advance()
-                        self.ignore_newlines()
-                        values: dict[Token, Node] = dict()
-                        while self.current_token.type == TT.IDENTIFIER:
-                            key = self.current_token
-                            self.advance()
-                            if self.current_token.type != TT.ASSIGN:
-                                return self.err(f"Expected '<-', got {self.current_token}")
-                            self.advance()
-                            value = self.atom()
-                            if isinstance(value, Error):
-                                return value
-                            values[key] = value
-                            if self.current_token.type != TT.NEWLINE and self.current_token.type != TT.RCURLY:
-                                return self.err("Expected newline, ';' or '}', got " + f"{self.current_token}")
-                            if self.current_token.type != TT.RCURLY:
-                                self.advance()
-                            self.ignore_newlines()
-                        if self.current_token.type != TT.RCURLY:
-                            return self.err("Expected newline, ';' or '}', got " + f'{self.current_token}')
-                        self.advance()
-                        return ObjectNode(values)
                     case _:
                         return self.err(f'Expected object or if, got {self.current_token}')
             case _:
@@ -286,10 +260,23 @@ class Parser:
                         if self.current_token.type != TT.COLON:
                             return self.err(f"Expected ':' for type, got {self.current_token}")
                         self.advance()
-                        if self.current_token.type != TT.TYPE:
+                        if self.current_token.type != TT.TYPE and self.current_token.type != TT.IDENTIFIER:  # todo:
                             return self.err(f'Expected type, got {self.current_token}')
-                        arg_types.append(self.current_token)
+                        typ = self.current_token
                         self.advance()
+                        if typ.value == 'list':
+                            if self.current_token.type != TT.LESS:
+                                return self.err(f"Expected '<type>', got {self.current_token}")
+                            self.advance()
+                            if self.current_token.type != TT.TYPE and self.current_token.type != TT.IDENTIFIER:  # todo:
+                                return self.err(f"Expected '<type>', got {self.current_token}")
+                            type_name = self.current_token.value
+                            self.advance()
+                            if self.current_token.type != TT.GREATER:
+                                return self.err(f"Expected '<type>', got {self.current_token}")
+                            self.advance()
+                            typ.value += f':{type_name}'
+                        arg_types.append(typ)
                     while self.current_token.type == TT.COMMA:
                         self.advance()
                         if self.current_token.type != TT.IDENTIFIER:
@@ -299,17 +286,30 @@ class Parser:
                         if self.current_token.type != TT.COLON:
                             return self.err(f"Expected ':' for type, got {self.current_token}")
                         self.advance()
-                        if self.current_token.type != TT.TYPE:
+                        typ = self.current_token
+                        if self.current_token.type != TT.TYPE and self.current_token.type != TT.IDENTIFIER:  # todo:
                             return self.err(f'Expected type, got {self.current_token}')
-                        arg_types.append(self.current_token)
                         self.advance()
+                        if typ.value == 'list':
+                            if self.current_token.type != TT.LESS:
+                                return self.err(f"Expected '<type>', got {self.current_token}")
+                            self.advance()
+                            if self.current_token.type != TT.TYPE and self.current_token.type != TT.IDENTIFIER:  # todo:
+                                return self.err(f"Expected '<type>', got {self.current_token}")
+                            type_name = self.current_token.value
+                            self.advance()
+                            if self.current_token.type != TT.GREATER:
+                                return self.err(f"Expected '<type>', got {self.current_token}")
+                            self.advance()
+                            typ.value += f':{type_name}'
+                        arg_types.append(typ)
                     if self.current_token.type != TT.RPAREN:
                         return self.err(f"Expected ')', got {self.current_token}")
                     self.advance()
                     return_type = Token(TT.TYPE, 'null', self.current_token.pos)
                     if self.current_token.type == TT.ARROW:
                         self.advance()
-                        if self.current_token.type != TT.TYPE:
+                        if self.current_token.type != TT.TYPE and self.current_token.type != TT.IDENTIFIER:  # todo
                             return self.err(f'Expected type, got {self.current_token}')
                         return_type = self.current_token
                         self.advance()
@@ -317,7 +317,7 @@ class Parser:
                             if self.current_token.type != TT.LESS:
                                 return self.err(f"Expected '<type>', got {self.current_token}")
                             self.advance()
-                            if self.current_token.type != TT.TYPE:
+                            if self.current_token.type != TT.TYPE and self.current_token.type != TT.IDENTIFIER:  # todo:
                                 return self.err(f"Expected '<type>', got {self.current_token}")
                             type_name = self.current_token.value
                             self.advance()
@@ -329,6 +329,38 @@ class Parser:
                     if isinstance(body_node, Error):
                         return body_node
                     return FunDefNode(identifier, arg_list, arg_types, body_node, return_type)
+                case 'STRUCT':
+                    self.advance()
+                    if self.current_token.type != TT.IDENTIFIER:
+                        return self.err(f'Expected identifier, got {self.current_token}')
+                    name = self.current_token
+                    self.advance()
+                    if self.current_token.type != TT.LCURLY:
+                        return self.err("Expected '{', got " + str(self.current_token))
+                    self.advance()
+                    values: dict[Token, Token] = {}
+                    self.ignore_newlines()
+                    while self.current_token.type != TT.RCURLY:
+                        if self.current_token.type == TT.EOF:
+                            return self.err("Expected '}', got EOF")
+                        if self.current_token.type != TT.IDENTIFIER:
+                            return self.err(f'expected identifier, got {self.current_token}')
+                        ident = self.current_token
+                        self.advance()
+                        if self.current_token.type != TT.COLON:
+                            return self.err(f"Expected ':', got {self.current_token}")
+                        self.advance()
+                        if self.current_token.type != TT.TYPE and self.current_token.type != TT.IDENTIFIER:  # todo:
+                            return self.err(f'Expected type, got {self.current_token}')
+                        typ = self.current_token
+                        self.advance()
+                        values[ident] = typ
+                        if self.current_token.type != TT.NEWLINE:
+                            return self.err(f"Expected ';' or newline, got {self.current_token}")
+                        self.ignore_newlines()
+                    self.advance()
+                    return StructDefNode(name, values)
+
                 case 'PASS':
                     self.advance()
                     return PassNode()
@@ -366,7 +398,7 @@ class Parser:
                         if self.current_token.type != TT.LESS:
                             return self.err(f"Expected '<type>', got {self.current_token}")
                         self.advance()
-                        if self.current_token.type != TT.TYPE:
+                        if self.current_token.type != TT.TYPE and self.current_token.type != TT.IDENTIFIER:  # todo:
                             return self.err(f"Expected '<type>', got {self.current_token}")
                         type_name = self.current_token.value
                         self.advance()

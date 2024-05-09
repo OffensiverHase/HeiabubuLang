@@ -1,8 +1,19 @@
-fun lst() -> list<int>:
-    return [1, 2, 3]
+struct Person {
+    name: str
+    age: int
+    male: bool
+}
+
+fun idk(p: Person) -> int {
+    p.male <- true
+    printf('%b\n', p.male)
+    return p.age
+}
 
 fun main() -> int {
-    a: list<int> <- [1,2]; # lst()
-    printf('%i', a[0])
-    return 0
+    p <- Person('john', 32, true)
+    printf('%b\n', p.male)
+    p.male <- false
+    printf('%b\n', p.male)
+    return idk(p)
 }

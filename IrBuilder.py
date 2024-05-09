@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os.path
 
 from llvmlite import ir
@@ -38,8 +40,11 @@ class IrBuilder:
         self.module = ir.Module('main')
 
         self.builder = ir.IRBuilder()
+        self.alloca = Allocator(self.builder)
 
         self.var_block: ir.Block | None = None
+
+        self.structs: dict[str, Struct] = {}
 
         self.env = Environment()
 
@@ -51,7 +56,15 @@ class IrBuilder:
             list_type = self.get_type(list_type)
             return ir.PointerType(list_type)
         else:
-            return self.__getattribute__(name + '_type')
+            Type: ir.Type | None = None
+            try:
+                Type = self.__getattribute__(name + '_type')
+            except AttributeError:
+                if name in self.module.get_identified_types().keys():
+                    Type = self.module.context.get_identified_type(name)
+                else:
+                    print_err(f'No type called {name}')
+            return Type
 
     def increment_counter(self) -> int:
         self.counter += 1
@@ -59,7 +72,6 @@ class IrBuilder:
 
     def init_builtins(self):
         def init_bool() -> tuple[GlobalVariable, GlobalVariable]:
-
             true_var = ir.GlobalVariable(self.module, self.bool_type, 'true')
             true_var.initializer = self.bool_type(1)
             true_var.global_constant = True
@@ -99,7 +111,13 @@ class IrBuilder:
         name: str = node.identifier.value
         body = node.body
         param_names: list[str] = [p.value for p in node.args]
-        param_types: list[ir.Type] = [self.get_type(t.value) for t in node.arg_types]
+        param_types: list[ir.Type] = []
+        for t in node.arg_types:
+            Type = self.get_type(t.value)
+            if isinstance(Type, ir.BaseStructType):
+                Type = Type.as_pointer()
+            param_types.append(Type)
+        #  param_types: list[ir.Type] = [self.get_type(t.value) for t in node.arg_types]  # todo
         return_type = self.get_type(node.return_type.value)
 
         fun_type = ir.FunctionType(return_type, param_types)
@@ -113,10 +131,13 @@ class IrBuilder:
         self.env = Environment(parent=prev_env)
 
         params_ptr: list[ir.AllocaInstr] = []
+
         for i, typ in enumerate(param_types):
             ptr = self.builder.alloca(typ)
-            self.builder.store(func.args[i], ptr)
             params_ptr.append(ptr)
+
+        for i, typ in enumerate(param_types):
+            self.builder.store(func.args[i], params_ptr[i])
 
         for i, x in enumerate(zip(param_types, param_names)):
             typ = param_types[i]
@@ -230,8 +251,11 @@ class IrBuilder:
         elif right_type == self.bool_type and left_type == self.bool_type:
             value, Type = self.bool_bin_op(left_value, right_value, operator)
 
-        elif right_type == self.int_type and isinstance(left_type, ir.PointerType) and isinstance(left_type.pointee, ir.ArrayType) or isinstance(left_type.pointee, ir.IntType):
-            value, Type = self.list_bin_op(left_value, right_value, operator, isinstance(left_type.pointee, ir.ArrayType))
+        elif (right_type == self.int_type and isinstance(left_type, ir.PointerType) and isinstance(left_type.pointee,
+                                                                                                   ir.ArrayType) or isinstance(
+            left_type.pointee, ir.IntType)):
+            value, Type = self.list_bin_op(left_value, right_value, operator,
+                                           isinstance(left_type.pointee, ir.ArrayType))
 
         else:
             print_err(f'Cannot find operation {operator} on {left_type} and {right_type}')
@@ -363,6 +387,39 @@ class IrBuilder:
 
         self.env = prev_env
 
+    def visitStructDefNode(self, node: StructDefNode):
+        name: str = node.identifier.value
+        idents = [ident.value for ident in node.values.keys()]
+        types = [typ.value for typ in node.values.values()]
+        self.structs[name] = Struct(name, idents)
+
+        struct_type = self.module.context.get_identified_type(name)
+        struct_type.set_body(*[self.get_type(typ) for typ in types])
+
+    def visitStructAssignNode(self, node: StructAssignNode):
+        struct, struct_type = self.resolve(node.obj)
+        key: str = node.key.value
+        value, value_type = self.resolve(node.value)
+        struct_obj = self.structs[struct_type.pointee.name if hasattr(struct_type, 'pointee') else struct_type.name]
+        index = struct_obj.field_indices[key]  # todo
+
+        ptr = self.builder.gep(struct, [self.int_type(0), self.int_type(index)])  # fixme
+        self.builder.store(value, ptr)
+
+    def visitStructReadNode(self, node: StructReadNode) -> tuple[ir.Value, ir.Type]:
+        struct, struct_type = self.resolve(node.obj)
+        key: str = node.key.value
+        struct_obj = self.structs[struct_type.pointee.name if struct_type.is_pointer else struct_type.name]
+        index = struct_obj.field_indices[key]  # todo
+
+        if not struct_type.is_pointer:
+            pass
+
+        ptr = self.builder.gep(struct, [self.int_type(0), self.int_type(index)] if struct_type.is_pointer else [
+            self.int_type(index)])
+        value = self.builder.load(ptr)
+        return value, value.type
+
     def visitImportNode(self, node: ImportNode):
         file_path = node.file_path.value
         if self.global_imports.get(file_path) is not None:
@@ -385,7 +442,39 @@ class IrBuilder:
         self.visit(ast)
         self.global_imports[file_path] = ast
 
-    def visitFunCallNode(self, node: FunCallNode) -> tuple[ir.Instruction, ir.Type]:
+    def visitFunCallNode(self, node: FunCallNode) -> tuple[ir.Value, ir.Type]:
+        name = node.identifier.value
+        params = node.args
+
+        args: list[ir.Value] = []
+        types: list[ir.Type] = []
+
+        if len(params) > 0:
+            for p in params:
+                p_val, p_type = self.resolve(p)
+                if isinstance(p_type, ir.BaseStructType):
+                    ptr = self.builder.alloca(p_type)
+                    self.builder.store(p_val, ptr)
+                    p_val = ptr
+                    p_type = ptr.type
+                args.append(p_val)
+                types.append(p_type)
+
+        if name in self.structs.keys():
+            return self.init_struct(node)
+
+        match name:
+            case 'printf':
+                if len(types) <= 0:
+                    print_err("printf cannot be called without a argument, use `printf('\n')`")
+                ret = self.printf(params=args, return_type=types[0])
+                ret_type = self.int_type
+            case _:
+                func, ret_type = self.env.lookup(name)
+                ret = self.builder.call(func, args)
+        return ret, ret_type
+
+    def init_struct(self, node: FunCallNode) -> tuple[ir.Value, ir.Type]:
         name = node.identifier.value
         params = node.args
 
@@ -398,16 +487,23 @@ class IrBuilder:
                 args.append(p_val)
                 types.append(p_type)
 
-        match name:
-            case 'printf':
-                if len(types) <= 0:
-                    print_err("printf cannot be called without a argument, use `printf('\n')`")
-                ret = self.printf(params=args, return_type=types[0])
-                ret_type = self.int_type
-            case _:
-                func, ret_type = self.env.lookup(name)
-                ret = self.builder.call(func, args)
-        return ret, ret_type
+        struct_type = self.module.context.get_identified_type(name)
+
+        alloc_builder = ir.IRBuilder()  # so that the allocation happens at the beginning of the function block!
+        alloc_builder.position_at_start(self.var_block)
+        struct_ptr = alloc_builder.alloca(struct_type)
+        self.builder._anchor += 1  # add 1 to the current line, because the alloca instr has been added before
+
+        for i, arg in enumerate(args):
+            ptr = self.builder.gep(struct_ptr, [self.int_type(0), self.int_type(i)])
+            if isinstance(types[i], ir.PointerType):
+                string_val = self.builder.load(ptr)
+                val = self.builder.bitcast(string_val, self.str_type)
+                self.builder.store(val, ptr)
+            else:
+                self.builder.store(arg, ptr)
+
+        return struct_ptr, struct_ptr.type
 
     def visitPassNode(self, node: PassNode):
         self.builder.add(self.int_type(0), self.int_type(0), 'no-op')
@@ -441,6 +537,9 @@ class IrBuilder:
             case ListNode():
                 node: ListNode = node
                 return self.visitListNode(node)
+            case StructReadNode():
+                node: StructReadNode = node
+                return self.visitStructReadNode(node)
             case _:
                 print_err(f'Tried to resolve unknown node: {node.__class__.__name__}: {node}')
 
@@ -550,7 +649,8 @@ class IrBuilder:
                 print_err(f'unknown operation {operator} on bool and bool!')  # todo
         return value, Type
 
-    def list_bin_op(self, left_value: ir.Value, right_value: ir.Value, operator: Token, bitcast: bool) -> tuple[ir.Value, ir.Type]:
+    def list_bin_op(self, left_value: ir.Value, right_value: ir.Value, operator: Token, bitcast: bool) -> tuple[
+        ir.Value, ir.Type]:
         value, Type = None, None
         match operator.type:
             case TT.GET:
@@ -579,3 +679,38 @@ class IrBuilder:
         else:
             fmt_arg = self.builder.bitcast(self.module.get_global(f'__str_{self.counter}'), self.str_type)
             return self.builder.call(func, [fmt_arg, *rest_params])
+
+
+class Struct:
+    def __init__(self, name: str, fields: list[str]):
+        self.name = name
+        self.field_indices = dict((field, idx) for idx, field in enumerate(fields))
+
+
+class Allocator:
+    def __init__(self, main_builder: ir.IRBuilder):
+        self.main_builder = main_builder  # only used to set the main builder's anchor after inserting an alloca instr
+        self.alloca_builder = ir.IRBuilder()
+
+    def set_block(self, block: ir.Block):
+        self.block = block
+
+    def alloca(self, typ: ir.Type) -> ir.AllocaInstr:
+        assert self.block is not None and self.instr is not None, 'First call set_block'
+        if not self.instr:
+            self.alloca_builder.position_at_start(self.block)
+        else:
+            self.alloca_builder.position_after(self.instr)
+
+        ret = self.alloca_builder.alloca(typ)
+        self.instr = ret
+        self.main_builder._anchor += 1
+
+        return ret
+
+    def __enter__(self):
+        pass
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.block = None
+        self.instr = None

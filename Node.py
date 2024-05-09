@@ -149,15 +149,16 @@ class ListAssignNode(Node):
         return f'({self.list}[{self.index}] <- {self.value})'
 
 
-class ObjectNode(Node):
-    def __init__(self, values: dict[Token, Node]):
+class StructDefNode(Node):
+    def __init__(self, identifier: Token, values: dict[Token, Token]):
         self.values = values
+        self.identifier = identifier
 
     def __str__(self):
-        return f'(object {self.values})'
+        return f'(struct {self.identifier} {self.values} )'
 
 
-class ObjectAssignNode(Node):
+class StructAssignNode(Node):
     def __init__(self, obj: Node, key: Token, value: Node):
         self.obj = obj
         self.key = key
@@ -167,7 +168,7 @@ class ObjectAssignNode(Node):
         return f'({self.obj}.{self.key} <- {self.value})'
 
 
-class ObjectReadNode(Node):
+class StructReadNode(Node):
     def __init__(self, obj: Node, key: Token):
         self.obj = obj
         self.key = key
