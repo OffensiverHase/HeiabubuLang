@@ -44,6 +44,8 @@ class IrBuilder:
 
         self.structs: dict[str, Struct] = {}
 
+        self.pow = self.module.declare_intrinsic('llvm.pow', [self.float_type])
+
         self.env = Environment()
 
         self.init_builtins()
@@ -553,7 +555,7 @@ class IrBuilder:
             case TT.MOD:
                 value = self.builder.srem(left_value, right_value, name='mod')
             case TT.POW:
-                pass  # todo, mayby with loop?
+                pass  # todo value = self.builder.call(self.powi, [left_value, right_value], name='powi.ret')
             case TT.LESS:
                 value = self.builder.icmp_signed('<', left_value, right_value, name='less')
                 Type = self.bool_type
@@ -601,7 +603,7 @@ class IrBuilder:
             case TT.MOD:
                 value = self.builder.frem(left_value, right_value, name='mod')
             case TT.POW:
-                pass  # todo
+                value = self.builder.call(self.pow, [left_value, right_value], name='pow.ret')
             case TT.LESS:
                 value = self.builder.fcmp_ordered('<', left_value, right_value, name='less')
                 Type = self.bool_type

@@ -28,6 +28,8 @@ def start():
         globals()['OUTPUT'] = args.o
     else:
         globals()['OUTPUT'] = args.file_path.replace('.tss', '.exe' if platform.system() == 'Windows' else '')
+    global GC
+    GC = args.no_gc
     run(text)
 
 
@@ -38,8 +40,10 @@ def parse_args() -> Namespace:
     arg_parser.add_argument('file_path', type=str, help='Path to your entry point Teness file. (e.g. main.tss)')
     arg_parser.add_argument('-d', type=str, action='append', choices=['tokens', 'ast', 'ir', 'asm'])
     arg_parser.add_argument('-o', type=str, help='The emitted output file. (e.g. main.exe)')
-    arg_parser.add_argument('-run', action='store_true')
-
+    arg_parser.add_argument('-no_gc', action='store_false',
+                            help='Turns off the garbage collector for performance (not implemented yet)')
+    arg_parser.add_argument('-run', action='store_true',
+                            help='Run the given file via JIT compilation, dont create an executable')
     return arg_parser.parse_args()
 
 
@@ -48,6 +52,7 @@ AST_DEBUG = False
 IR_DEBUG = False
 ASM_DEBUG = False
 RUN = False
+GC = True
 OUTPUT: str | None = None
 
 
@@ -72,10 +77,22 @@ def run(text: str):
     if IR_DEBUG:
         print('\nEvaluated to the following IR:')
         print('\t' + module.__str__())
+
+        print('\n\tafter opt: ' + str(opt(module)) + '\n')
     if RUN:
         run_jit(module)
     else:
         cmp(module)
+
+
+def opt(module: llvmlite.ir.Module) -> llvm.ModuleRef:
+    pmb = llvm.PassManagerBuilder()
+    pmb.opt_level = 3
+    pm = llvm.ModulePassManager()
+    module_ref = llvm.parse_assembly(module.__str__())
+    pmb.populate(pm)
+    pm.run(module_ref)
+    return module_ref
 
 
 def cmp(module: llvmlite.ir.Module):

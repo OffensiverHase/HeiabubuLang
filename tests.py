@@ -19,8 +19,8 @@ bool_type = ir.IntType(1)
 float_type = ir.DoubleType()
 # </editor-fold>
 
-builder.add(int_type(1), int_type(1), name='nop')
-builder.add(int_type(1), int_type(1), name='nop')
+fun = module.declare_intrinsic('llvm.pow', [float_type])
+ret = builder.call(fun, [float_type(2.5), float_type(2.0)])
 builder.ret(int_type(0))
 
 # <editor-fold desc="Ending">

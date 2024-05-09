@@ -4,9 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="bfe04db2-d8d8-4286-a2bd-6d3eaa2f1670" name="Changes" comment="add Allocator">
+    <list default="true" id="bfe04db2-d8d8-4286-a2bd-6d3eaa2f1670" name="Changes" comment="readable ir">
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/IrBuilder.py" beforeDir="false" afterPath="$PROJECT_DIR$/IrBuilder.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Shell.py" beforeDir="false" afterPath="$PROJECT_DIR$/Shell.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/debug/main" beforeDir="false" afterPath="$PROJECT_DIR$/debug/main" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/debug/main.tss" beforeDir="false" afterPath="$PROJECT_DIR$/debug/main.tss" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -48,14 +52,15 @@
     "Python.printf.executor": "Debug",
     "Python.run.executor": "Debug",
     "Python.test.executor": "Run",
+    "Python.test_binding.executor": "Run",
     "Python.test_ir.executor": "Debug",
-    "Python.tests.executor": "Debug",
+    "Python.tests.executor": "Run",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "git-widget-placeholder": "master",
     "last_opened_file_path": "/home/martin/Coding/PycharmProjects/TenessPy/tests.py",
     "run.code.analysis.last.selected.profile": "aDefault",
-    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
+    "settings.editor.selected.configurable": "project.propVCSSupport.DirectoryMappings"
   }
 }]]></component>
   <component name="RecentsManager">
@@ -63,7 +68,7 @@
       <recent name="$PROJECT_DIR$/debug" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.run">
+  <component name="RunManager" selected="Python.test_binding">
     <configuration name="main.tss" type="PythonConfigurationType" factoryName="Python">
       <module name="TenessPy" />
       <option name="ENV_FILES" value="" />
@@ -79,7 +84,7 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="main.py" />
-      <option name="PARAMETERS" value="debug/main.tss -d ir" />
+      <option name="PARAMETERS" value="debug/main.tss -d ir -no_gc" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -103,6 +108,28 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="main.py" />
       <option name="PARAMETERS" value="debug/main.tss -d asm -d ir -d ast -run" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="test_binding" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="TenessPy" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$USER_HOME$/miniconda3/lib/python3.12/site-packages/llvmlite/tests" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$USER_HOME$/miniconda3/lib/python3.12/site-packages/llvmlite/tests/test_binding.py" />
+      <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -135,10 +162,12 @@
     <list>
       <item itemvalue="Python.main.tss" />
       <item itemvalue="Python.run" />
+      <item itemvalue="Python.test_binding" />
       <item itemvalue="Python.tests" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.test_binding" />
         <item itemvalue="Python.tests" />
       </list>
     </recent_temporary>
@@ -295,7 +324,15 @@
       <option name="project" value="LOCAL" />
       <updated>1715241611349</updated>
     </task>
-    <option name="localTasksCounter" value="18" />
+    <task id="LOCAL-00018" summary="readable ir">
+      <option name="closed" value="true" />
+      <created>1715247621419</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1715247621419</updated>
+    </task>
+    <option name="localTasksCounter" value="19" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -316,7 +353,8 @@
     <MESSAGE value="bitcast list to ptrs" />
     <MESSAGE value="add Structs" />
     <MESSAGE value="add Allocator" />
-    <option name="LAST_COMMIT_MESSAGE" value="add Allocator" />
+    <MESSAGE value="readable ir" />
+    <option name="LAST_COMMIT_MESSAGE" value="readable ir" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -328,40 +366,30 @@
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/IrBuilder.py</url>
-          <line>555</line>
+          <line>557</line>
           <option name="timeStamp" value="48" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/IrBuilder.py</url>
-          <line>651</line>
+          <line>653</line>
           <option name="timeStamp" value="102" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/IrBuilder.py</url>
-          <line>648</line>
+          <line>650</line>
           <option name="timeStamp" value="103" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/IrBuilder.py</url>
-          <line>123</line>
-          <option name="timeStamp" value="155" />
+          <url>file://$USER_HOME$/miniconda3/lib/python3.12/site-packages/llvmlite/ir/values.py</url>
+          <line>870</line>
+          <option name="timeStamp" value="172" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/IrBuilder.py</url>
-          <line>147</line>
-          <option name="timeStamp" value="156" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/IrBuilder.py</url>
-          <line>693</line>
-          <option name="timeStamp" value="157" />
+          <url>file://$PROJECT_DIR$/Shell.py</url>
+          <line>80</line>
+          <option name="timeStamp" value="174" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
-    <watches-manager>
-      <configuration name="PythonConfigurationType">
-        <watch expression="self.allocator" language="Python" />
-      </configuration>
-    </watches-manager>
   </component>
 </project>

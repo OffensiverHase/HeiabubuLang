@@ -11,7 +11,7 @@ fun idk(p: Person) -> int {
 }
 
 fun main() -> int {
-    p <- Person('john', 32, true)
+    p <- Person('john', 52, true)
     printf('%b\n', p.male)
     p.male <- false
     printf('%b\n', p.male)
