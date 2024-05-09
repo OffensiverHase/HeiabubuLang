@@ -101,7 +101,7 @@ def cmp(module: llvmlite.ir.Module):
     llvm.initialize_native_asmprinter()
 
     try:
-        llvm_module = llvm.parse_assembly(module.__str__())
+        llvm_module = opt(module)
         llvm_module.verify()
     except Exception as e:
         print(e)
@@ -130,7 +130,7 @@ def run_jit(module: llvmlite.ir.Module):
     llvm.initialize_native_asmprinter()
 
     try:
-        llvm_module = llvm.parse_assembly(module.__str__())
+        llvm_module = opt(module)
         llvm_module.verify()
     except Exception as e:
         print(e)
