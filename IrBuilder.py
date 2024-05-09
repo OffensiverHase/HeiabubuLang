@@ -40,9 +40,7 @@ class IrBuilder:
         self.module = ir.Module('main')
 
         self.builder = ir.IRBuilder()
-        self.alloca = Allocator(self.builder)
-
-        self.var_block: ir.Block | None = None
+        self.allocator = Allocator()
 
         self.structs: dict[str, Struct] = {}
 
@@ -123,38 +121,38 @@ class IrBuilder:
         fun_type = ir.FunctionType(return_type, param_types)
         func = ir.Function(self.module, fun_type, name)
         block = func.append_basic_block(f'{name}_entry')
-        self.var_block = block
 
-        prev_builder = self.builder
-        prev_env = self.env
-        self.builder = ir.IRBuilder(block)
-        self.env = Environment(parent=prev_env)
+        with self.allocator.set_block(block):
 
-        params_ptr: list[ir.AllocaInstr] = []
+            prev_builder = self.builder
+            prev_env = self.env
+            self.builder = ir.IRBuilder(block)
+            self.env = Environment(parent=prev_env)
 
-        for i, typ in enumerate(param_types):
-            ptr = self.builder.alloca(typ)
-            params_ptr.append(ptr)
+            params_ptr: list[ir.AllocaInstr] = []
 
-        for i, typ in enumerate(param_types):
-            self.builder.store(func.args[i], params_ptr[i])
+            for i, typ in enumerate(param_types):
+                ptr = self.builder.alloca(typ)
+                params_ptr.append(ptr)
 
-        for i, x in enumerate(zip(param_types, param_names)):
-            typ = param_types[i]
-            ptr = params_ptr[i]
+            for i, typ in enumerate(param_types):
+                self.builder.store(func.args[i], params_ptr[i])
 
-            self.env.define(x[1], ptr, typ)
+            for i, x in enumerate(zip(param_types, param_names)):
+                typ = param_types[i]
+                ptr = params_ptr[i]
 
-        self.env.define(name, func, return_type)
+                self.env.define(x[1], ptr, typ)
 
-        self.visit(body)
-        if return_type == self.null_type and not self.builder.block.is_terminated:
-            self.builder.ret_void()
+            self.env.define(name, func, return_type)
 
-        self.env = prev_env
-        self.env.define(name, func, return_type)
-        self.builder = prev_builder
-        self.var_block = None
+            self.visit(body)
+            if return_type == self.null_type and not self.builder.block.is_terminated:
+                self.builder.ret_void()
+
+            self.env = prev_env
+            self.env.define(name, func, return_type)
+            self.builder = prev_builder
 
     def visitReturnNode(self, node: ReturnNode):
         value_node = node.value
@@ -185,9 +183,7 @@ class IrBuilder:
                 print_err(f'Expected {list_type}, got {Type}')
             resolved_values.append(value)
 
-        alloc_builder = ir.IRBuilder()
-        alloc_builder.position_at_start(self.var_block)
-        list_ptr = alloc_builder.alloca(ir.ArrayType(list_type, len(values)))
+        list_ptr = self.allocator.alloca(ir.ArrayType(list_type, len(values)))
         self.builder._anchor += 1
 
         begin = self.builder.gep(list_ptr, [self.int_type(0), self.int_type(0)])
@@ -216,10 +212,8 @@ class IrBuilder:
 
         if self.env.lookup(name) is None:
 
-            alloc_builder = ir.IRBuilder()  # so that the allocation happens at the beginning of the function block!
-            alloc_builder.position_at_start(self.var_block)
-            ptr = alloc_builder.alloca(Type)
-            self.builder._anchor += 1  # add 1 to the current line, because a instr has been added before
+            ptr = self.allocator.alloca(Type)
+            self.builder._anchor += 1
 
             self.builder.store(value, ptr)
             self.env.define(name, ptr, Type)
@@ -354,7 +348,9 @@ class IrBuilder:
         loop_inc_block = self.builder.append_basic_block(f'loop_inc_block_{self.counter}')
         loop_exit_block = self.builder.append_basic_block(f'loop_exit_block_{self.counter}')
 
-        ptr = self.builder.alloca(var_type)
+        ptr = self.allocator.alloca(var_type)
+        self.builder._anchor += 1
+
         self.builder.store(var_value, ptr)
         self.builder.branch(loop_cond_block)
         prev_env = self.env
@@ -400,10 +396,10 @@ class IrBuilder:
         struct, struct_type = self.resolve(node.obj)
         key: str = node.key.value
         value, value_type = self.resolve(node.value)
-        struct_obj = self.structs[struct_type.pointee.name if hasattr(struct_type, 'pointee') else struct_type.name]
+        struct_obj = self.structs[struct_type.pointee.name if struct_type.is_pointer else struct_type.name]
         index = struct_obj.field_indices[key]  # todo
 
-        ptr = self.builder.gep(struct, [self.int_type(0), self.int_type(index)])  # fixme
+        ptr = self.builder.gep(struct, [self.int_type(0), self.int_type(index)])
         self.builder.store(value, ptr)
 
     def visitStructReadNode(self, node: StructReadNode) -> tuple[ir.Value, ir.Type]:
@@ -453,7 +449,9 @@ class IrBuilder:
             for p in params:
                 p_val, p_type = self.resolve(p)
                 if isinstance(p_type, ir.BaseStructType):
-                    ptr = self.builder.alloca(p_type)
+                    ptr = self.allocator.alloca(p_type)
+                    self.builder._anchor += 1
+
                     self.builder.store(p_val, ptr)
                     p_val = ptr
                     p_type = ptr.type
@@ -489,10 +487,8 @@ class IrBuilder:
 
         struct_type = self.module.context.get_identified_type(name)
 
-        alloc_builder = ir.IRBuilder()  # so that the allocation happens at the beginning of the function block!
-        alloc_builder.position_at_start(self.var_block)
-        struct_ptr = alloc_builder.alloca(struct_type)
-        self.builder._anchor += 1  # add 1 to the current line, because the alloca instr has been added before
+        struct_ptr = self.allocator.alloca(struct_type)
+        self.builder._anchor += 1
 
         for i, arg in enumerate(args):
             ptr = self.builder.gep(struct_ptr, [self.int_type(0), self.int_type(i)])
@@ -688,23 +684,24 @@ class Struct:
 
 
 class Allocator:
-    def __init__(self, main_builder: ir.IRBuilder):
-        self.main_builder = main_builder  # only used to set the main builder's anchor after inserting an alloca instr
+    def __init__(self):
         self.alloca_builder = ir.IRBuilder()
+        self.block: ir.Block | None = None
+        self.instr: ir.Instruction | None = None
 
-    def set_block(self, block: ir.Block):
+    def set_block(self, block: ir.Block) -> Allocator:
         self.block = block
+        return self
 
     def alloca(self, typ: ir.Type) -> ir.AllocaInstr:
-        assert self.block is not None and self.instr is not None, 'First call set_block'
-        if not self.instr:
+        assert self.block is not None, 'First call set_block'
+        if self.instr is None:
             self.alloca_builder.position_at_start(self.block)
         else:
             self.alloca_builder.position_after(self.instr)
 
         ret = self.alloca_builder.alloca(typ)
         self.instr = ret
-        self.main_builder._anchor += 1
 
         return ret
 
