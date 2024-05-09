@@ -19,10 +19,9 @@ bool_type = ir.IntType(1)
 float_type = ir.DoubleType()
 # </editor-fold>
 
-val = int_type(1)
-ptr = builder.inttoptr(val, int_type.as_pointer())
-loaded = builder.load(ptr)
-builder.ret(loaded)
+builder.add(int_type(1), int_type(1), name='nop')
+builder.add(int_type(1), int_type(1), name='nop')
+builder.ret(int_type(0))
 
 # <editor-fold desc="Ending">
 print(module)

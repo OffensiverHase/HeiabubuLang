@@ -4,9 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="bfe04db2-d8d8-4286-a2bd-6d3eaa2f1670" name="Changes" comment="add Structs">
+    <list default="true" id="bfe04db2-d8d8-4286-a2bd-6d3eaa2f1670" name="Changes" comment="add Allocator">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/IrBuilder.py" beforeDir="false" afterPath="$PROJECT_DIR$/IrBuilder.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -45,10 +46,10 @@
     "Python.main.executor": "Run",
     "Python.main.tss.executor": "Run",
     "Python.printf.executor": "Debug",
-    "Python.run.executor": "Run",
+    "Python.run.executor": "Debug",
     "Python.test.executor": "Run",
     "Python.test_ir.executor": "Debug",
-    "Python.tests.executor": "Run",
+    "Python.tests.executor": "Debug",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "git-widget-placeholder": "master",
@@ -278,7 +279,23 @@
       <option name="project" value="LOCAL" />
       <updated>1715238856343</updated>
     </task>
-    <option name="localTasksCounter" value="16" />
+    <task id="LOCAL-00016" summary="add Allocator">
+      <option name="closed" value="true" />
+      <created>1715241579647</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1715241579647</updated>
+    </task>
+    <task id="LOCAL-00017" summary="add Allocator">
+      <option name="closed" value="true" />
+      <created>1715241611349</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1715241611349</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -298,7 +315,8 @@
     <MESSAGE value="reimplement lists" />
     <MESSAGE value="bitcast list to ptrs" />
     <MESSAGE value="add Structs" />
-    <option name="LAST_COMMIT_MESSAGE" value="add Structs" />
+    <MESSAGE value="add Allocator" />
+    <option name="LAST_COMMIT_MESSAGE" value="add Allocator" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -310,32 +328,32 @@
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/IrBuilder.py</url>
-          <line>556</line>
+          <line>555</line>
           <option name="timeStamp" value="48" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/IrBuilder.py</url>
-          <line>654</line>
+          <line>651</line>
           <option name="timeStamp" value="102" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/IrBuilder.py</url>
-          <line>651</line>
+          <line>648</line>
           <option name="timeStamp" value="103" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/IrBuilder.py</url>
-          <line>124</line>
+          <line>123</line>
           <option name="timeStamp" value="155" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/IrBuilder.py</url>
-          <line>148</line>
+          <line>147</line>
           <option name="timeStamp" value="156" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/IrBuilder.py</url>
-          <line>696</line>
+          <line>693</line>
           <option name="timeStamp" value="157" />
         </line-breakpoint>
       </breakpoints>

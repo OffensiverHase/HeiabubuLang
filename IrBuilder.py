@@ -115,7 +115,6 @@ class IrBuilder:
             if isinstance(Type, ir.BaseStructType):
                 Type = Type.as_pointer()
             param_types.append(Type)
-        #  param_types: list[ir.Type] = [self.get_type(t.value) for t in node.arg_types]  # todo
         return_type = self.get_type(node.return_type.value)
 
         fun_type = ir.FunctionType(return_type, param_types)
@@ -132,7 +131,7 @@ class IrBuilder:
             params_ptr: list[ir.AllocaInstr] = []
 
             for i, typ in enumerate(param_types):
-                ptr = self.builder.alloca(typ)
+                ptr = self.builder.alloca(typ, name=param_names[i])
                 params_ptr.append(ptr)
 
             for i, typ in enumerate(param_types):
@@ -164,7 +163,7 @@ class IrBuilder:
         value, Type = self.resolve(value_node)
 
         if isinstance(Type, ir.PointerType):
-            ptr_to_array = self.builder.gep(value, [self.int_type(0), self.int_type(0)])
+            ptr_to_array = self.builder.gep(value, [self.int_type(0), self.int_type(0)], name='ret_temp')
             self.builder.ret(ptr_to_array)
         else:
             self.builder.ret(value)
@@ -183,10 +182,10 @@ class IrBuilder:
                 print_err(f'Expected {list_type}, got {Type}')
             resolved_values.append(value)
 
-        list_ptr = self.allocator.alloca(ir.ArrayType(list_type, len(values)))
+        list_ptr = self.allocator.alloca(ir.ArrayType(list_type, len(values)), name='list_ptr')
         self.builder._anchor += 1
 
-        begin = self.builder.gep(list_ptr, [self.int_type(0), self.int_type(0)])
+        begin = self.builder.gep(list_ptr, [self.int_type(0), self.int_type(0)], name='array.0')
         self.builder.store(resolved_values[0], begin)
 
         resolved_values.pop(0)
@@ -194,7 +193,7 @@ class IrBuilder:
         last_ptr = begin
 
         for i, resolved in enumerate(resolved_values):
-            element_ptr = self.builder.gep(last_ptr, [self.int_type(1)])
+            element_ptr = self.builder.gep(last_ptr, [self.int_type(1)], name=f'array.{i}')
             self.builder.store(resolved, element_ptr)
             last_ptr = element_ptr
 
@@ -212,7 +211,7 @@ class IrBuilder:
 
         if self.env.lookup(name) is None:
 
-            ptr = self.allocator.alloca(Type)
+            ptr = self.allocator.alloca(Type, name=name)
             self.builder._anchor += 1
 
             self.builder.store(value, ptr)
@@ -226,7 +225,11 @@ class IrBuilder:
             self.builder.store(value, ptr)
 
     def visitVarAccessNode(self, node: VarAccessNode) -> tuple[ir.Value, ir.Type]:
-        return self.resolve(node)
+        if node.name.value in ['true', 'false']:
+            return ir.Constant(self.bool_type, 1 if node.name.value == 'true' else 0), self.bool_type
+        # todo errors
+        ptr, Type = self.env.lookup(node.name.value)
+        return self.builder.load(ptr, name=node.name.value), Type
 
     def visitBinOpNode(self, node: BinOpNode) -> tuple[ir.Value, ir.Type]:
         operator = node.operator
@@ -348,7 +351,7 @@ class IrBuilder:
         loop_inc_block = self.builder.append_basic_block(f'loop_inc_block_{self.counter}')
         loop_exit_block = self.builder.append_basic_block(f'loop_exit_block_{self.counter}')
 
-        ptr = self.allocator.alloca(var_type)
+        ptr = self.allocator.alloca(var_type, name=var_name)
         self.builder._anchor += 1
 
         self.builder.store(var_value, ptr)
@@ -358,12 +361,12 @@ class IrBuilder:
         self.env.define(var_name, ptr, var_type)
 
         self.builder.position_at_end(loop_cond_block)
-        loop_var_value = self.builder.load(ptr)
+        loop_var_value = self.builder.load(ptr, name='loop_var')
         cond: CompareInstr | None = None
         if var_type == self.int_type or var_type == self.byte_type:
-            cond = self.builder.icmp_signed('<', loop_var_value, to_value)
+            cond = self.builder.icmp_signed('<', loop_var_value, to_value, name='loop_cond')
         elif var_type == self.float_type:
-            cond = self.builder.fcmp_ordered('<', loop_var_value, to_value)
+            cond = self.builder.fcmp_ordered('<', loop_var_value, to_value, name='loop_cond')
         else:
             print_err(f'Unknown types for for loop, got {var_type}, expected int, float, or byte')
         self.builder.cbranch(cond, loop_body_block, loop_exit_block)
@@ -373,9 +376,9 @@ class IrBuilder:
         self.builder.branch(loop_inc_block)
 
         self.builder.position_at_end(loop_inc_block)
-        old_value = self.builder.load(ptr)
+        old_value = self.builder.load(ptr, name='old_loop_var')
         new_value = self.builder.add(old_value, step_value) if not var_type == self.float_type else self.builder.fadd(
-            old_value, step_value)
+            old_value, step_value, name='new_loop_var')
         self.builder.store(new_value, ptr)
         self.builder.branch(loop_cond_block)
 
@@ -399,7 +402,7 @@ class IrBuilder:
         struct_obj = self.structs[struct_type.pointee.name if struct_type.is_pointer else struct_type.name]
         index = struct_obj.field_indices[key]  # todo
 
-        ptr = self.builder.gep(struct, [self.int_type(0), self.int_type(index)])
+        ptr = self.builder.gep(struct, [self.int_type(0), self.int_type(index)], name=f'{struct.name}.{key}_ptr')
         self.builder.store(value, ptr)
 
     def visitStructReadNode(self, node: StructReadNode) -> tuple[ir.Value, ir.Type]:
@@ -412,8 +415,8 @@ class IrBuilder:
             pass
 
         ptr = self.builder.gep(struct, [self.int_type(0), self.int_type(index)] if struct_type.is_pointer else [
-            self.int_type(index)])
-        value = self.builder.load(ptr)
+            self.int_type(index)], name=f'{struct.name}.{key}_ptr')
+        value = self.builder.load(ptr, name=f'{struct.name}.{key}')
         return value, value.type
 
     def visitImportNode(self, node: ImportNode):
@@ -446,10 +449,10 @@ class IrBuilder:
         types: list[ir.Type] = []
 
         if len(params) > 0:
-            for p in params:
+            for i, p in enumerate(params):
                 p_val, p_type = self.resolve(p)
                 if isinstance(p_type, ir.BaseStructType):
-                    ptr = self.allocator.alloca(p_type)
+                    ptr = self.allocator.alloca(p_type, name=f'{node.identifier.value}.arg{i}')
                     self.builder._anchor += 1
 
                     self.builder.store(p_val, ptr)
@@ -469,7 +472,7 @@ class IrBuilder:
                 ret_type = self.int_type
             case _:
                 func, ret_type = self.env.lookup(name)
-                ret = self.builder.call(func, args)
+                ret = self.builder.call(func, args, name=f'{name}.ret')
         return ret, ret_type
 
     def init_struct(self, node: FunCallNode) -> tuple[ir.Value, ir.Type]:
@@ -487,22 +490,22 @@ class IrBuilder:
 
         struct_type = self.module.context.get_identified_type(name)
 
-        struct_ptr = self.allocator.alloca(struct_type)
+        struct_ptr = self.allocator.alloca(struct_type, name=name)
         self.builder._anchor += 1
 
         for i, arg in enumerate(args):
-            ptr = self.builder.gep(struct_ptr, [self.int_type(0), self.int_type(i)])
+            ptr = self.builder.gep(struct_ptr, [self.int_type(0), self.int_type(i)], name=f'{name}.field{i}_ptr')
             if isinstance(types[i], ir.PointerType):
-                string_val = self.builder.load(ptr)
-                val = self.builder.bitcast(string_val, self.str_type)
+                string_val = self.builder.load(ptr, name='str_val')
+                val = self.builder.bitcast(string_val, self.str_type, name='casted_str_val')
                 self.builder.store(val, ptr)
             else:
                 self.builder.store(arg, ptr)
 
         return struct_ptr, struct_ptr.type
 
-    def visitPassNode(self, node: PassNode):
-        self.builder.add(self.int_type(0), self.int_type(0), 'no-op')
+    def visitPassNode(self, _: PassNode):
+        self.builder.add(self.int_type(0), self.int_type(0), 'nop')
 
     def resolve(self, node: Node, value_type: str | None = None) -> tuple[ir.Value, ir.Type]:
         match node:
@@ -519,11 +522,7 @@ class IrBuilder:
                 return self.visitUnaryOpNode(node)
             case VarAccessNode():
                 node: VarAccessNode = node
-                if node.name.value in ['true', 'false']:
-                    return ir.Constant(self.bool_type, 1 if node.name.value == 'true' else 0), self.bool_type
-                # todo errors
-                ptr, Type = self.env.lookup(node.name.value)
-                return self.builder.load(ptr), Type
+                return self.visitVarAccessNode(node)
             case FunCallNode():
                 node: FunCallNode = node
                 return self.visitFunCallNode(node)
@@ -544,41 +543,39 @@ class IrBuilder:
         value = None
         match operator.type:
             case TT.PLUS:
-                value = self.builder.add(left_value, right_value)
+                value = self.builder.add(left_value, right_value, name='add')
             case TT.MINUS:
-                value = self.builder.sub(left_value, right_value)
+                value = self.builder.sub(left_value, right_value, name='sub')
             case TT.MUL:
-                value = self.builder.mul(left_value, right_value)
+                value = self.builder.mul(left_value, right_value, name='mul')
             case TT.DIV:
-                value = self.builder.sdiv(left_value, right_value)
+                value = self.builder.sdiv(left_value, right_value, name='div')
             case TT.MOD:
-                value = self.builder.srem(left_value, right_value)
+                value = self.builder.srem(left_value, right_value, name='mod')
             case TT.POW:
-                pass  # todo
+                pass  # todo, mayby with loop?
             case TT.LESS:
-                value = self.builder.icmp_signed('<', left_value, right_value)
+                value = self.builder.icmp_signed('<', left_value, right_value, name='less')
                 Type = self.bool_type
             case TT.LESSEQUAL:
-                value = self.builder.icmp_signed('<=', left_value, right_value)
+                value = self.builder.icmp_signed('<=', left_value, right_value, name='lessequal')
                 Type = self.bool_type
             case TT.GREATER:
-                value = self.builder.icmp_signed('>', left_value, right_value)
+                value = self.builder.icmp_signed('>', left_value, right_value, name='greater')
                 Type = self.bool_type
             case TT.GREATEREQUAL:
-                value = self.builder.icmp_signed('>=', left_value, right_value)
+                value = self.builder.icmp_signed('>=', left_value, right_value, name='greaterequal')
                 Type = self.bool_type
             case TT.EQUALS:
-                value = self.builder.icmp_signed('==', left_value, right_value)
+                value = self.builder.icmp_signed('==', left_value, right_value, name='equal')
                 Type = self.bool_type
             case TT.UNEQUALS:
-                value = self.builder.icmp_signed('!=', left_value, right_value)
+                value = self.builder.icmp_signed('!=', left_value, right_value, name='unequal')
                 Type = self.bool_type
             case TT.AND:
-                value = self.builder.and_(left_value, right_value)
-            case TT.NOT:
-                value = self.builder.or_(left_value, right_value)
+                value = self.builder.and_(left_value, right_value, name='and')
             case TT.XOR:
-                value = self.builder.xor(left_value, right_value)
+                value = self.builder.xor(left_value, right_value, name='xor')
             case _:
                 print_err(f'unknown operation {operator} on int and int!')  # todo
         return value, Type
@@ -588,40 +585,40 @@ class IrBuilder:
         Type = self.float_type
         value = None
         if convert_left:
-            left_value = self.builder.sitofp(left_value, self.float_type)
+            left_value = self.builder.sitofp(left_value, self.float_type, 'cast_to_float')
         else:
-            right_value = self.builder.sitofp(right_value, self.float_type)
+            right_value = self.builder.sitofp(right_value, self.float_type, name='cast_to_float')
 
         match operator.type:
             case TT.PLUS:
-                value = self.builder.fadd(left_value, right_value)
+                value = self.builder.fadd(left_value, right_value, name='plus')
             case TT.MINUS:
-                value = self.builder.fsub(left_value, right_value)
+                value = self.builder.fsub(left_value, right_value, name='minus')
             case TT.MUL:
-                value = self.builder.fmul(left_value, right_value)
+                value = self.builder.fmul(left_value, right_value, name='mul')
             case TT.DIV:
-                value = self.builder.fdiv(left_value, right_value)
+                value = self.builder.fdiv(left_value, right_value, name='div')
             case TT.MOD:
-                value = self.builder.frem(left_value, right_value)
+                value = self.builder.frem(left_value, right_value, name='mod')
             case TT.POW:
                 pass  # todo
             case TT.LESS:
-                value = self.builder.fcmp_ordered('<', left_value, right_value)
+                value = self.builder.fcmp_ordered('<', left_value, right_value, name='less')
                 Type = self.bool_type
             case TT.LESSEQUAL:
-                value = self.builder.fcmp_ordered('<=', left_value, right_value)
+                value = self.builder.fcmp_ordered('<=', left_value, right_value, name='lessequal')
                 Type = self.bool_type
             case TT.GREATER:
-                value = self.builder.fcmp_ordered('>', left_value, right_value)
+                value = self.builder.fcmp_ordered('>', left_value, right_value, name='greater')
                 Type = self.bool_type
             case TT.GREATEREQUAL:
-                value = self.builder.fcmp_ordered('>=', left_value, right_value)
+                value = self.builder.fcmp_ordered('>=', left_value, right_value, name='greaterequal')
                 Type = self.bool_type
             case TT.EQUALS:
-                value = self.builder.fcmp_ordered('==', left_value, right_value)
+                value = self.builder.fcmp_ordered('==', left_value, right_value, name='equal')
                 Type = self.bool_type
             case TT.UNEQUALS:
-                value = self.builder.fcmp_ordered('!=', left_value, right_value)
+                value = self.builder.fcmp_ordered('!=', left_value, right_value, name='unequal')
                 Type = self.bool_type
             case _:
                 print_err(f'unknown operation {operator} on float and float!')  # todo
@@ -632,15 +629,15 @@ class IrBuilder:
         value = None
         match operator.type:
             case TT.AND:
-                value = self.builder.and_(left_value, right_value)
+                value = self.builder.and_(left_value, right_value, name='and')
             case TT.OR:
-                value = self.builder.or_(left_value, right_value)
+                value = self.builder.or_(left_value, right_value, name='or')
             case TT.XOR:
-                value = self.builder.xor(left_value, right_value)
+                value = self.builder.xor(left_value, right_value, name='xor')
             case TT.EQUALS:
-                value = self.builder.icmp_unsigned(left_value, '==', right_value)
+                value = self.builder.icmp_unsigned(left_value, '==', right_value, name='equal')
             case TT.UNEQUALS:
-                value = self.builder.icmp_unsigned(left_value, '!=', right_value)
+                value = self.builder.icmp_unsigned(left_value, '!=', right_value, name='unequal')
             case _:
                 print_err(f'unknown operation {operator} on bool and bool!')  # todo
         return value, Type
@@ -651,9 +648,9 @@ class IrBuilder:
         match operator.type:
             case TT.GET:
                 if bitcast:
-                    self.builder.bitcast(left_value, self.int_type.as_pointer())
-                ptr = self.builder.gep(left_value, [right_value])
-                value = self.builder.load(ptr)
+                    self.builder.bitcast(left_value, self.int_type.as_pointer(), 'list_to_ptr')
+                ptr = self.builder.gep(left_value, [right_value], name=f'list.{right_value}_ptr')  # todo
+                value = self.builder.load(ptr, name=f'list.{right_value}')
                 Type = value.type
             case _:
                 print_err(f'unḱnown operation {operator} on list and int')
@@ -661,7 +658,7 @@ class IrBuilder:
 
     def printf(self, params: list[ir.Value], return_type: ir.Type) -> ir.CallInstr:
         func, _ = self.env.lookup('printf')
-        c_str = self.builder.alloca(return_type)
+        c_str = self.builder.alloca(return_type, name='c_str')
         self.builder.store(params[0], c_str)
 
         rest_params = params[1:]
@@ -669,12 +666,12 @@ class IrBuilder:
         if isinstance(params[0], ir.LoadInstr):
             c_fmt: ir.LoadInstr = params[0]
             g_var_ptr = c_fmt.operands[0]
-            string_val = self.builder.load(g_var_ptr)
-            fmt_arg = self.builder.bitcast(string_val, self.str_type)
-            return self.builder.call(func, [fmt_arg, *rest_params])
+            string_val = self.builder.load(g_var_ptr, name='c_str_val')
+            fmt_arg = self.builder.bitcast(string_val, self.str_type, name='c_str_to_ptr')
+            return self.builder.call(func, [fmt_arg, *rest_params], name='printf.ret')
         else:
-            fmt_arg = self.builder.bitcast(self.module.get_global(f'__str_{self.counter}'), self.str_type)
-            return self.builder.call(func, [fmt_arg, *rest_params])
+            fmt_arg = self.builder.bitcast(self.module.get_global(f'__str_{self.counter}'), self.str_type, name='c_str_to_ptr')
+            return self.builder.call(func, [fmt_arg, *rest_params], name='printf.ret')
 
 
 class Struct:
@@ -693,14 +690,14 @@ class Allocator:
         self.block = block
         return self
 
-    def alloca(self, typ: ir.Type) -> ir.AllocaInstr:
+    def alloca(self, typ: ir.Type, name: str) -> ir.AllocaInstr:
         assert self.block is not None, 'First call set_block'
         if self.instr is None:
             self.alloca_builder.position_at_start(self.block)
         else:
             self.alloca_builder.position_after(self.instr)
 
-        ret = self.alloca_builder.alloca(typ)
+        ret = self.alloca_builder.alloca(typ, name=name)
         self.instr = ret
 
         return ret
