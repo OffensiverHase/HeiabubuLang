@@ -1,19 +1,7 @@
-struct Person {
-    name: str
-    age: int
-    male: bool
-}
+fun a():
+    b <- 1
 
-fun idk(p: Person) -> int {
-    p.male <- true
-    printf('%b\n', p.male)
-    return p.age
-}
-
-fun main() -> int {
-    p <- Person('john', 52, true)
-    printf('%b\n', p.male)
-    p.male <- false
-    printf('%b\n', p.male)
-    return idk(p)
+fun main() {
+    while(true):
+        a()
 }

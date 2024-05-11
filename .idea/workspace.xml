@@ -4,14 +4,17 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="bfe04db2-d8d8-4286-a2bd-6d3eaa2f1670" name="Changes" comment="readable ir">
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+    <list default="true" id="bfe04db2-d8d8-4286-a2bd-6d3eaa2f1670" name="Changes" comment="add opt">
+      <change afterPath="$PROJECT_DIR$/Source.gv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Source.gv.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/debug/test.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/IrBuilder.py" beforeDir="false" afterPath="$PROJECT_DIR$/IrBuilder.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Shell.py" beforeDir="false" afterPath="$PROJECT_DIR$/Shell.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/debug/main" beforeDir="false" afterPath="$PROJECT_DIR$/debug/main" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/debug/main.tss" beforeDir="false" afterPath="$PROJECT_DIR$/debug/main.tss" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/debug/test" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/debug/test.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/debug/test.ll" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -50,7 +53,7 @@
     "Python.main.executor": "Run",
     "Python.main.tss.executor": "Run",
     "Python.printf.executor": "Debug",
-    "Python.run.executor": "Debug",
+    "Python.run.executor": "Run",
     "Python.test.executor": "Run",
     "Python.test_binding.executor": "Run",
     "Python.test_ir.executor": "Debug",
@@ -68,7 +71,7 @@
       <recent name="$PROJECT_DIR$/debug" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.test_binding">
+  <component name="RunManager" selected="Python.test">
     <configuration name="main.tss" type="PythonConfigurationType" factoryName="Python">
       <module name="TenessPy" />
       <option name="ENV_FILES" value="" />
@@ -84,7 +87,7 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="main.py" />
-      <option name="PARAMETERS" value="debug/main.tss -d ir -no_gc" />
+      <option name="PARAMETERS" value="debug/main.tss -d ir -no_opt" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -108,6 +111,28 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="main.py" />
       <option name="PARAMETERS" value="debug/main.tss -d asm -d ir -d ast -run" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="test" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="TenessPy" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1 NUMBA_DUMP_LLVM=1 " />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/debug" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/debug/test.py" />
+      <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -162,11 +187,13 @@
     <list>
       <item itemvalue="Python.main.tss" />
       <item itemvalue="Python.run" />
+      <item itemvalue="Python.test" />
       <item itemvalue="Python.test_binding" />
       <item itemvalue="Python.tests" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.test" />
         <item itemvalue="Python.test_binding" />
         <item itemvalue="Python.tests" />
       </list>
@@ -332,7 +359,23 @@
       <option name="project" value="LOCAL" />
       <updated>1715247621419</updated>
     </task>
-    <option name="localTasksCounter" value="19" />
+    <task id="LOCAL-00019" summary="add opt">
+      <option name="closed" value="true" />
+      <created>1715286998054</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1715286998054</updated>
+    </task>
+    <task id="LOCAL-00020" summary="add opt">
+      <option name="closed" value="true" />
+      <created>1715287104877</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1715287104877</updated>
+    </task>
+    <option name="localTasksCounter" value="21" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -354,7 +397,8 @@
     <MESSAGE value="add Structs" />
     <MESSAGE value="add Allocator" />
     <MESSAGE value="readable ir" />
-    <option name="LAST_COMMIT_MESSAGE" value="readable ir" />
+    <MESSAGE value="add opt" />
+    <option name="LAST_COMMIT_MESSAGE" value="add opt" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -386,8 +430,8 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/Shell.py</url>
-          <line>80</line>
-          <option name="timeStamp" value="174" />
+          <line>120</line>
+          <option name="timeStamp" value="176" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
