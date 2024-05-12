@@ -385,7 +385,7 @@ class Parser:
                                 return self.err(f"Expected ';' or newline, got {self.current_token}")
                             self.ignore_newlines()
                         else:
-                            fun = self.expression()
+                            fun: FunDefNode = self.expression()
                             if fun is Error:
                                 return fun
                             fun.args.insert(0, Token(TT.IDENTIFIER, 'self', self.current_token.pos))
