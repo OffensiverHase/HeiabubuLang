@@ -38,7 +38,7 @@ def parse_args() -> Namespace:
                                 epilog='Exit Status:\n\tReturns 0 unless an error occurs')
 
     arg_parser.add_argument('file_path', type=str, help='Path to your entry point Teness file. (e.g. main.tss)')
-    arg_parser.add_argument('-d', type=str, action='append', choices=['tokens', 'ast', 'ir', 'asm'])
+    arg_parser.add_argument('-d', type=str, action='append', choices=['tokens', 'ast', 'ir', 'asm'], help='Dump')
     arg_parser.add_argument('-o', type=str, help='The emitted output file. (e.g. main.exe)')
     arg_parser.add_argument('-no_opt', action='store_false', help='Turn off all the optimisations')
     arg_parser.add_argument('-run', action='store_true',
@@ -60,25 +60,24 @@ def run(text: str):
     lexer = Lexer(ctx)
     tokens = lexer.make_tokens()
     if TOKENS_DEBUG:
-        print('\nEvaluated to the following Tokens:')
-        print('\t' + tokens.__str__())
+        with open(OUTPUT + '.tokens', 'w') as f:
+            f.write(tokens.__str__())
     parser = Parser(tokens, ctx)
     ast = parser.parse()
     if isinstance(ast, Error):
         fail(ast)
     if AST_DEBUG:
-        print('\nEvaluated to the following AST:')
-        print('\t' + ast.__str__())
+        with open(OUTPUT + '.json', 'w') as f:
+            f.write(ast.__str__())
     builder = IrBuilder(ctx)
     builder.build(ast)
     module = builder.module
     module.triple = llvm.get_default_triple()
     if IR_DEBUG:
-        print('\nEvaluated to the following IR:')
-        print('\t' + module.__str__())
-
-        if OPT:
-            print('\n\tafter opt: ' + str(opt(module)) + '\n')
+        with open(OUTPUT + '.ll', 'w') as f:
+            if OPT:
+                module = opt(module)
+            f.write(module.__str__())
     if RUN:
         run_jit(module)
     else:
@@ -115,9 +114,10 @@ def cmp(module: llvmlite.ir.Module):
             obj = target.emit_object(llvm_module)
             f.write(obj)
         if ASM_DEBUG:
-            assembly = target.emit_assembly(llvm_module)
-            print('Evaluated to the following assembly:')
-            print(assembly)
+            with open(OUTPUT + '.s') as f:
+                assembly = target.emit_assembly(llvm_module)
+                f.write(assembly)
+
         subprocess.run(['gcc', OUTPUT + '_temp.o', '-o', OUTPUT], capture_output=True, text=True)
     except Exception as e:
         print_err(e)
@@ -142,9 +142,9 @@ def run_jit(module: llvmlite.ir.Module):
     engine.finalize_object()
 
     if ASM_DEBUG:
-        assembly = target.emit_assembly(llvm_module)
-        print('Evaluated to the following assembly:')
-        print(assembly)
+        with open(OUTPUT + '.s') as f:
+            assembly = target.emit_assembly(llvm_module)
+            f.write(assembly)
 
     entry = engine.get_function_address('main')
     if entry == 0:

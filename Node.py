@@ -1,3 +1,4 @@
+import json
 from typing import List
 
 from Token import Token, TT
@@ -5,15 +6,18 @@ from Token import Token, TT
 
 class Node:
     def __repr__(self):
-        return self.__str__()
+        return json.dumps(self.json(), indent=2)
+
+    def json(self) -> dict:
+        pass
 
 
 class NumberNode(Node):
     def __init__(self, number: Token):
         self.token = number
 
-    def __str__(self):
-        return self.token.__str__()
+    def json(self) -> dict:
+        return {'type': 'number', 'number': self.token.__str__()}
 
 
 class BinOpNode(Node):
@@ -22,8 +26,8 @@ class BinOpNode(Node):
         self.operator = operator
         self.right = right
 
-    def __str__(self):
-        return f'({self.left, self.operator, self.right}'
+    def json(self) -> dict:
+        return {'type': 'bin_op', 'left': self.left.json(), 'operator': self.operator.__str__(), 'right': self.right.json()}
 
 
 class UnaryOpNode(Node):
@@ -31,16 +35,16 @@ class UnaryOpNode(Node):
         self.operator = operator
         self.node = node
 
-    def __str__(self):
-        return f'({self.operator, self.node})'
+    def json(self) -> dict:
+        return {'type': 'unary_op', 'operator': self.operator.__str__(), 'right': self.node.json()}
 
 
 class VarAccessNode(Node):
     def __init__(self, name: Token):
         self.name = name
 
-    def __str__(self):
-        return f'({self.name})'
+    def json(self) -> dict:
+        return {'type': 'var_access', 'identifier': self.name.__str__()}
 
 
 class VarAssignNode(Node):
@@ -49,11 +53,9 @@ class VarAssignNode(Node):
         self.type = type_token
         self.value = value
 
-    def __str__(self):
-        if self.type:
-            return f'({self.name}: {self.type} <- {self.value})'
-        else:
-            return f'({self.name} <- {self.value})'
+    def json(self) -> dict:
+        return {'type': 'var_assign', 'identifier': self.name.__str__(), 'type_annotation': self.type.__str__() if self.type else 'none',
+                'value': self.value.json()}
 
 
 class IfNode(Node):
@@ -62,8 +64,9 @@ class IfNode(Node):
         self.expr = expr
         self.else_expr = else_expr
 
-    def __str__(self):
-        return f'(if {self.bool} { {self.expr} } else { {self.else_expr} })' if self.else_expr else f'(if {self.bool} { {self.expr} })'
+    def json(self) -> dict:
+        return {'type': 'if', 'if': self.bool.json(), 'then': self.expr.json(),
+                'else': self.else_expr.json() if self.else_expr else 'none'}
 
 
 class WhileNode(Node):
@@ -71,8 +74,8 @@ class WhileNode(Node):
         self.bool = bool_node
         self.expr = expr
 
-    def __str__(self):
-        return f'(while {self.bool} { {self.expr} })'
+    def json(self) -> dict:
+        return {'type': 'while', 'while': self.bool.json(), 'then': self.expr.json()}
 
 
 class ForNode(Node):
@@ -83,11 +86,9 @@ class ForNode(Node):
         self.step = step if step else NumberNode(Token(TT.INT, 1, identifier.pos))
         self.expr = expr
 
-    def __str__(self):
-        if self.step != 1:
-            return f'(for {self.identifier} <- {self.from_node} .. {self.to} step {self.step} { {self.expr} })'
-        else:
-            return f'(for {self.identifier} <- {self.from_node} .. {self.to} { {self.expr} })'
+    def json(self) -> dict:
+        return {'type': 'for', 'var_name': self.identifier.__str__(), 'from': self.from_node.json(), 'to': self.to.json(),
+                'step': self.step.json() if self.step.__str__() else 'none', 'then': self.expr.json()}
 
 
 class FunCallNode(Node):
@@ -95,8 +96,9 @@ class FunCallNode(Node):
         self.identifier = identifier
         self.args = args
 
-    def __str__(self):
-        return f'({self.identifier}({self.args.__str__().removeprefix('[').removesuffix(']')}))'
+    def json(self) -> dict:
+        args = [a.json() for a in self.args]
+        return {'type': 'fun_call', 'identifier': self.identifier.__str__(), 'args': args}
 
 
 class FunDefNode(Node):
@@ -107,36 +109,38 @@ class FunDefNode(Node):
         self.body = body
         self.return_type = return_type
 
-    def __str__(self):
-        params = ''
-        for i in range(len(self.args)):
-            params += f'{self.args[i].value}: {self.arg_types[i].value}, '
-
-        return f'(fun {self.identifier}({params}) -> {self.return_type} { {self.body} })'
+    def json(self) -> dict:
+        args = [a.__str__() for a in self.args]
+        arg_types = [at.__str__() for at in self.arg_types]
+        params = dict(zip(args, arg_types))
+        return {'type': 'fun_def', 'identifier': self.identifier.__str__(), 'params': params, 'fun_body': self.body.json(),
+                'ret_type': self.return_type.__str__()}
 
 
 class StringNode(Node):
     def __init__(self, value: Token):
         self.value = value
 
-    def __str__(self):
-        return f"('{self.value}')"
+    def json(self) -> dict:
+        return {'type': 'str', 'value': self.value.__str__()}
 
 
 class ListNode(Node):
     def __init__(self, content: List[Node]):
         self.content = content
 
-    def __str__(self):
-        return f'({self.content.__str__()})'
+    def json(self) -> dict:
+        exprs = [e.json() for e in self.content]
+        return {'type': 'list', 'content': exprs}
 
 
 class StatementNode(Node):
     def __init__(self, expressions: List[Node]):
         self.expressions = expressions
 
-    def __str__(self):
-        return f'({self.expressions.__str__().removeprefix('[').removesuffix(']')})'
+    def json(self) -> dict:
+        exprs = [e.json() for e in self.expressions]
+        return {'type': 'statement', 'body': exprs}
 
 
 class ListAssignNode(Node):
@@ -145,8 +149,8 @@ class ListAssignNode(Node):
         self.index = index
         self.value = value
 
-    def __str__(self):
-        return f'({self.list}[{self.index}] <- {self.value})'
+    def json(self) -> dict:
+        return {'type': 'list_assign', 'list': self.list.json(), 'index': self.index.__str__(), 'value': self.value.json()}
 
 
 class StructDefNode(Node):
@@ -155,8 +159,9 @@ class StructDefNode(Node):
         self.identifier = identifier
         self.functions = functions
 
-    def __str__(self):
-        return f'(class {self.identifier} {str(self.values).removesuffix('}')}; {str(self.functions).removeprefix('{')} )'
+    def json(self) -> dict:
+        funcs = [f.json() for f in self.functions]
+        return {'type': 'class_def', 'fields': self.values.__str__(), 'functions': funcs}
 
 
 class StructAssignNode(Node):
@@ -165,8 +170,8 @@ class StructAssignNode(Node):
         self.key = key
         self.value = value
 
-    def __str__(self):
-        return f'({self.obj}.{self.key} <- {self.value})'
+    def json(self) -> dict:
+        return {'type': 'object_assign', 'object': self.obj.json(), 'key': self.key.__str__(), 'value': self.value.json()}
 
 
 class StructReadNode(Node):
@@ -174,36 +179,36 @@ class StructReadNode(Node):
         self.obj = obj
         self.key = key
 
-    def __str__(self):
-        return f'({self.obj}.{self.key})'
+    def json(self) -> dict:
+        return {'type': 'object_read', 'object': self.obj.json(), 'key': self.key.__str__()}
 
 
 class ImportNode(Node):
     def __init__(self, file_path: Token):
         self.file_path = file_path
 
-    def __str__(self):
-        return f'(import {self.file_path})'
+    def json(self) -> dict:
+        return {'type': 'import', 'file': self.file_path.__str__()}
 
 
 class PassNode(Node):
-    def __str__(self):
-        return '(pass)'
+    def json(self) -> dict:
+        return {'type': 'pass'}
 
 
 class ReturnNode(Node):
     def __init__(self, value: Node | None):
         self.value = value
 
-    def __str__(self):
-        return f'(return {self.value})' if self.value else '(return)'
+    def json(self) -> dict:
+        return {'type': 'return', 'value': self.value.json() if self.value else 'none'}
 
 
 class BreakNode(Node):
-    def __str__(self):
-        return '(break)'
+    def json(self) -> dict:
+        return {'type': 'break'}
 
 
 class ContinueNode(Node):
-    def __str__(self):
-        return '(continue)'
+    def json(self) -> dict:
+        return {'type': 'continue'}
