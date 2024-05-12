@@ -150,12 +150,13 @@ class ListAssignNode(Node):
 
 
 class StructDefNode(Node):
-    def __init__(self, identifier: Token, values: dict[Token, Token]):
+    def __init__(self, identifier: Token, values: dict[Token, Token], functions: list[Node]):
         self.values = values
         self.identifier = identifier
+        self.functions = functions
 
     def __str__(self):
-        return f'(struct {self.identifier} {self.values} )'
+        return f'(class {self.identifier} {str(self.values).removesuffix('}')}; {str(self.functions).removeprefix('{')} )'
 
 
 class StructAssignNode(Node):

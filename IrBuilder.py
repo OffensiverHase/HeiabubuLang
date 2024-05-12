@@ -165,7 +165,7 @@ class IrBuilder:
         value, Type = self.resolve(value_node)
 
         if isinstance(Type, ir.PointerType):
-            ptr_to_array = self.builder.gep(value, [self.int_type(0), self.int_type(0)], name='ret_temp')
+            ptr_to_array = self.builder.gep(value, [self.int_type(0), self.int_type(0)] if Type.pointee.is_pointer else [self.int_type(0)], name='ret_temp')
             self.builder.ret(ptr_to_array)
         else:
             self.builder.ret(value)
@@ -208,7 +208,7 @@ class IrBuilder:
 
         value, Type = self.resolve(value_node)
 
-        if value_type != Type and value_type is not None:
+        if value_type != Type and value_type is not None and (value_type != Type.pointee) if Type.is_pointer else True:
             print_err(f'Type Error: expected {value_type}, got {Type}')
 
         if self.env.lookup(name) is None:
@@ -390,12 +390,16 @@ class IrBuilder:
 
     def visitStructDefNode(self, node: StructDefNode):
         name: str = node.identifier.value
+        funcs = node.functions
         idents = [ident.value for ident in node.values.keys()]
         types = [typ.value for typ in node.values.values()]
         self.structs[name] = Struct(name, idents)
 
         struct_type = self.module.context.get_identified_type(name)
         struct_type.set_body(*[self.get_type(typ) for typ in types])
+
+        for fun in funcs:
+            self.visit(fun)
 
     def visitStructAssignNode(self, node: StructAssignNode):
         struct, struct_type = self.resolve(node.obj)
@@ -427,8 +431,6 @@ class IrBuilder:
             print_err(f'Already imported {file_path} globally!')
             return
 
-        file_code: str | None = None
-
         with open(os.path.abspath(file_path), 'r') as f:
             file_code = f.read()
 
@@ -447,24 +449,27 @@ class IrBuilder:
         name = node.identifier.value
         params = node.args
 
+        if name in self.structs.keys():
+            return self.init_struct(node)
+
         args: list[ir.Value] = []
         types: list[ir.Type] = []
 
-        if len(params) > 0:
-            for i, p in enumerate(params):
-                p_val, p_type = self.resolve(p)
-                if isinstance(p_type, ir.BaseStructType):
-                    ptr = self.allocator.alloca(p_type, name=f'{node.identifier.value}.arg{i}')
-                    self.builder._anchor += 1
+        for i, p in enumerate(params):
+            p_val, p_type = self.resolve(p)
+            if isinstance(p_type, ir.BaseStructType):
+                ptr = self.allocator.alloca(p_type, name=f'{node.identifier.value}.arg{i}')
+                self.builder._anchor += 1
 
-                    self.builder.store(p_val, ptr)
-                    p_val = ptr
-                    p_type = ptr.type
-                args.append(p_val)
-                types.append(p_type)
+                self.builder.store(p_val, ptr)
+                p_val = ptr
+                p_type = ptr.type
+            elif isinstance(p_type, ir.PointerType) and isinstance(p_type.pointee, ir.ArrayType):
+                p_val = self.builder.bitcast(p_val, self.str_type, name='str_bitcast')
+                p_type = self.str_type
+            args.append(p_val)
+            types.append(p_type)
 
-        if name in self.structs.keys():
-            return self.init_struct(node)
 
         match name:
             case 'printf':
@@ -491,15 +496,15 @@ class IrBuilder:
                 types.append(p_type)
 
         struct_type = self.module.context.get_identified_type(name)
+        struct_obj = self.structs[name]
 
         struct_ptr = self.allocator.alloca(struct_type, name=name)
         self.builder._anchor += 1
 
         for i, arg in enumerate(args):
-            ptr = self.builder.gep(struct_ptr, [self.int_type(0), self.int_type(i)], name=f'{name}.field{i}_ptr')
-            if isinstance(types[i], ir.PointerType):
-                string_val = self.builder.load(ptr, name='str_val')
-                val = self.builder.bitcast(string_val, self.str_type, name='casted_str_val')
+            ptr = self.builder.gep(struct_ptr, [self.int_type(0), self.int_type(i)], name=f'{name}.{list(struct_obj.field_indices)[i]}_ptr')
+            if isinstance(types[i], ir.PointerType) and isinstance(types[i].pointee, ir.ArrayType):
+                val = self.builder.bitcast(args[i], self.str_type, name='casted_str_val')
                 self.builder.store(val, ptr)
             else:
                 self.builder.store(arg, ptr)

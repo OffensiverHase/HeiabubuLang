@@ -1,7 +1,16 @@
-fun a():
-    b <- 1
+class A {
+    name: str
+    fun get_name() -> str:
+        return self.name
+
+    fun set_name(name: str):
+        self.name <- name
+}
 
 fun main() {
-    while(true):
-        a()
+    c: A <- A('john')
+    printf('%s\n', c.get_name())
+    c.set_name('dom')
+    printf('%s\n', c.get_name())
+    return
 }
