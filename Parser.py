@@ -424,7 +424,7 @@ class Parser:
                 self.advance()  # to the : or <-
                 self.advance()  # past the : or <-
                 type_token: Token | None = None
-                if self.current_token.type == TT.TYPE or self.current_token.type == TT.IDENTIFIER:
+                if self.current_token.type == TT.TYPE:  # fixme or self.current_token.type == TT.IDENTIFIER:
                     type_token = self.current_token
                     self.advance()
                     if type_token.value == 'list':

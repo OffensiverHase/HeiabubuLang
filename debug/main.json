@@ -1,0 +1,67 @@
+{
+  "type": "statement",
+  "body": [
+    {
+      "type": "fun_def",
+      "identifier": "IDENTIFIER: main",
+      "params": {},
+      "fun_body": {
+        "type": "statement",
+        "body": [
+          {
+            "type": "var_assign",
+            "identifier": "IDENTIFIER: b",
+            "type_annotation": "TYPE: str",
+            "value": {
+              "type": "list",
+              "content": [
+                {
+                  "type": "number",
+                  "number": "INT: 1"
+                },
+                {
+                  "type": "number",
+                  "number": "INT: 2"
+                },
+                {
+                  "type": "number",
+                  "number": "INT: 3"
+                },
+                {
+                  "type": "number",
+                  "number": "INT: 4"
+                }
+              ]
+            }
+          },
+          {
+            "type": "pass"
+          },
+          {
+            "type": "fun_call",
+            "identifier": "IDENTIFIER: print",
+            "args": [
+              {
+                "type": "str",
+                "value": "STRING: %i"
+              },
+              {
+                "type": "bin_op",
+                "left": {
+                  "type": "var_access",
+                  "identifier": "IDENTIFIER: b"
+                },
+                "operator": "GET",
+                "right": {
+                  "type": "number",
+                  "number": "INT: 1"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "ret_type": "TYPE: null"
+    }
+  ]
+}

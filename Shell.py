@@ -21,7 +21,6 @@ def start():
         globals()[arg.upper() + '_DEBUG'] = True
     if args.run:
         globals()['RUN'] = True
-    text: str | None = None
     with open(args.file_path) as f:
         text = f.read()
     if args.o:
@@ -30,7 +29,7 @@ def start():
         globals()['OUTPUT'] = args.file_path.replace('.tss', '.exe' if platform.system() == 'Windows' else '')
     global OPT
     OPT = args.no_opt
-    run(text)
+    run(text, args.file_path)
 
 
 def parse_args() -> Namespace:
@@ -55,8 +54,10 @@ OPT = True
 OUTPUT: str | None = None
 
 
-def run(text: str):
-    ctx = Context(None, '<main>', VarMap(), '<stdin>', text)
+def run(text: str, file: str):
+    file = file.split(os.sep)[-1]
+    file, _ = os.path.splitext(file)
+    ctx = Context(None, '<main>', VarMap(), file, text)
     lexer = Lexer(ctx)
     tokens = lexer.make_tokens()
     if TOKENS_DEBUG:
@@ -79,7 +80,7 @@ def run(text: str):
                 module = opt(module)
             f.write(module.__str__())
     if RUN:
-        run_jit(module)
+        run_jit(module, file)
     else:
         cmp(module)
 
@@ -125,7 +126,7 @@ def cmp(module: llvmlite.ir.Module):
         os.remove(OUTPUT + '_temp.o')
 
 
-def run_jit(module: llvmlite.ir.Module):
+def run_jit(module: llvmlite.ir.Module, file: str):
     llvm.initialize()
     llvm.initialize_native_target()
     llvm.initialize_native_asmprinter()
@@ -148,8 +149,7 @@ def run_jit(module: llvmlite.ir.Module):
 
     entry = engine.get_function_address('main')
     if entry == 0:
-        print('No main function found!')
-        return
+        entry = engine.get_function_address(f'load_{file}')
     c_func = CFUNCTYPE(c_int)(entry)
     print('Starting...\n')
     result = c_func()

@@ -37,7 +37,7 @@ class IrBuilder:
 
         self.global_imports = {}
 
-        self.module = ir.Module('main')
+        self.module = ir.Module(f'{self.context.file}_main')
 
         self.builder = ir.IRBuilder()
         self.allocator = Allocator()
@@ -86,14 +86,40 @@ class IrBuilder:
             funty: ir.FunctionType = ir.FunctionType(self.int_type, [self.str_type], var_arg=True)
             return ir.Function(self.module, funty, 'printf')
 
+        def __init_c_std_library() -> None:
+            strlen_ty = ir.FunctionType(self.int_type, [ir.IntType(8).as_pointer()], var_arg=False)
+            strlen_func = ir.Function(self.module, strlen_ty, name="strlen")
+
+            malloc_ty = ir.FunctionType(ir.IntType(8).as_pointer(), [self.int_type], var_arg=False)
+            malloc_func = ir.Function(self.module, malloc_ty, name="malloc")
+
+            strcpy_ty = ir.FunctionType(ir.IntType(8).as_pointer(),
+                                        [ir.IntType(8).as_pointer(), ir.IntType(8).as_pointer()], var_arg=False)
+            strcpy_func = ir.Function(self.module, strcpy_ty, name="strcpy")
+
+            self.env.define('len', strlen_func, self.int_type)
+
         self.env.define('printf', init_print(), self.int_type)
 
         true, false = init_bool()
         self.env.define('true', true, true.type)
         self.env.define('false', false, false.type)
 
+        __init_c_std_library()
+
     def build(self, node: Node):
-        self.visit(node)
+        fnty = ir.FunctionType(self.int_type, [])
+        fun = ir.Function(self.module, fnty, f'load_{self.context.file}')
+        block = fun.append_basic_block(f'load_{self.context.file}_entry')
+        self.env.define(f'load_{self.context.file}', fun, self.int_type)
+
+        with self.allocator.set_block(block):
+            self.builder.position_at_end(block)
+
+            self.visit(node)
+
+            if not self.builder.block.is_terminated:
+                self.builder.ret(self.int_type(0))
 
     def visit(self, node: Node) -> tuple[ir.Value, ir.Type] | None:
         method = getattr(self, 'visit' + node.__class__.__name__, visit_unknown_node)
@@ -164,8 +190,10 @@ class IrBuilder:
 
         value, Type = self.resolve(value_node)
 
-        if isinstance(Type, ir.PointerType):
-            ptr_to_array = self.builder.gep(value, [self.int_type(0), self.int_type(0)] if Type.pointee.is_pointer else [self.int_type(0)], name='ret_temp')
+        if Type.is_pointer:
+            ptr_to_array = self.builder.gep(value,
+                                            [self.int_type(0), self.int_type(0)] if Type.pointee.is_pointer else [
+                                                self.int_type(0)], name='ret_temp')
             self.builder.ret(ptr_to_array)
         else:
             self.builder.ret(value)
@@ -250,12 +278,18 @@ class IrBuilder:
         elif right_type == self.bool_type and left_type == self.bool_type:
             value, Type = self.bool_bin_op(left_value, right_value, operator)
 
-        elif (right_type == self.int_type and isinstance(left_type, ir.PointerType) and isinstance(left_type.pointee,
-                                                                                                   ir.ArrayType) or isinstance(
-            left_type.pointee, ir.IntType)):
-            value, Type = self.list_bin_op(left_value, right_value, operator,
-                                           isinstance(left_type.pointee, ir.ArrayType))
+        elif self.is_str(right_type) and self.is_str(left_type):
+            value, Type = self.str_bin_op(left_value, right_value, operator)
 
+        elif self.is_list(right_type) and self.is_list(left_type):
+            value, Type = self.list_bin_op(left_value, right_value, operator)
+
+        elif self.is_list(left_type) and right_type == self.int_type:
+            value, Type = self.list_int_bin_op(left_value, right_value, operator,
+                                               isinstance(left_type.pointee, ir.ArrayType))
+
+        elif right_type == self.int_type and self.is_str(left_type):
+            value, Type = self.str_int_bin_op(left_value, right_value, operator)
         else:
             print_err(f'Cannot find operation {operator} on {left_type} and {right_type}')
 
@@ -408,7 +442,7 @@ class IrBuilder:
         struct_obj = self.structs[struct_type.pointee.name if struct_type.is_pointer else struct_type.name]
         index = struct_obj.field_indices[key]  # todo
 
-        ptr = self.builder.gep(struct, [self.int_type(0), self.int_type(index)], name=f'{struct.name}.{key}_ptr')
+        ptr = self.builder.gep(struct, [self.int_type(0), self.int_type(index)], name=f'{struct_obj.name}.{key}_ptr')
         self.builder.store(value, ptr)
 
     def visitStructReadNode(self, node: StructReadNode) -> tuple[ir.Value, ir.Type]:
@@ -421,8 +455,8 @@ class IrBuilder:
             pass
 
         ptr = self.builder.gep(struct, [self.int_type(0), self.int_type(index)] if struct_type.is_pointer else [
-            self.int_type(index)], name=f'{struct.name}.{key}_ptr')
-        value = self.builder.load(ptr, name=f'{struct.name}.{key}')
+            self.int_type(index)], name=f'{struct_obj.name}.{key}_ptr')
+        value = self.builder.load(ptr, name=f'{struct_obj.name}.{key}')
         return value, value.type
 
     def visitImportNode(self, node: ImportNode):
@@ -442,7 +476,9 @@ class IrBuilder:
         if isinstance(ast, Error):
             print_err(f'Error while importing file {file_path}: {ast}')
 
-        self.visit(ast)
+        ir_builder = IrBuilder(ctx)
+        ir_builder.visit(ast)
+
         self.global_imports[file_path] = ast
 
     def visitFunCallNode(self, node: FunCallNode) -> tuple[ir.Value, ir.Type]:
@@ -464,15 +500,14 @@ class IrBuilder:
                 self.builder.store(p_val, ptr)
                 p_val = ptr
                 p_type = ptr.type
-            elif isinstance(p_type, ir.PointerType) and isinstance(p_type.pointee, ir.ArrayType):
+            elif p_type.is_pointer and isinstance(p_type.pointee, ir.ArrayType):
                 p_val = self.builder.bitcast(p_val, self.str_type, name='str_bitcast')
                 p_type = self.str_type
             args.append(p_val)
             types.append(p_type)
 
-
         match name:
-            case 'printf':
+            case 'print':
                 if len(types) <= 0:
                     print_err("printf cannot be called without a argument, use `printf('\n')`")
                 ret = self.printf(params=args, return_type=types[0])
@@ -502,8 +537,9 @@ class IrBuilder:
         self.builder._anchor += 1
 
         for i, arg in enumerate(args):
-            ptr = self.builder.gep(struct_ptr, [self.int_type(0), self.int_type(i)], name=f'{name}.{list(struct_obj.field_indices)[i]}_ptr')
-            if isinstance(types[i], ir.PointerType) and isinstance(types[i].pointee, ir.ArrayType):
+            ptr = self.builder.gep(struct_ptr, [self.int_type(0), self.int_type(i)],
+                                   name=f'{name}.{list(struct_obj.field_indices)[i]}_ptr')
+            if types[i].is_pointer and isinstance(types[i].pointee, ir.ArrayType):
                 val = self.builder.bitcast(args[i], self.str_type, name='casted_str_val')
                 self.builder.store(val, ptr)
             else:
@@ -649,23 +685,91 @@ class IrBuilder:
                 print_err(f'unknown operation {operator} on bool and bool!')  # todo
         return value, Type
 
-    def list_bin_op(self, left_value: ir.Value, right_value: ir.Value, operator: Token, bitcast: bool) -> tuple[
+    def list_int_bin_op(self, left_value: ir.Value, right_value: ir.Value, operator: Token, bitcast: bool) -> tuple[
         ir.Value, ir.Type]:
         value, Type = None, None
         match operator.type:
             case TT.GET:
                 if bitcast:
-                    self.builder.bitcast(left_value, self.int_type.as_pointer(), 'list_to_ptr')
-                ptr = self.builder.gep(left_value, [right_value], name=f'list.{right_value}_ptr')  # todo
-                value = self.builder.load(ptr, name=f'list.{right_value}')
+                    left_value = self.builder.bitcast(left_value, self.int_type.as_pointer(), 'list_to_ptr')
+                ptr = self.builder.gep(left_value, [right_value], name='list_element_ptr')  # todo
+                value = self.builder.load(ptr, name=f'list_element')
                 Type = value.type
             case _:
                 print_err(f'unḱnown operation {operator} on list and int')
         return value, Type
 
+    def list_bin_op(self, left_value: ir.Value, right_value: ir.Value, operator: Token) -> tuple[ir.Value, ir.Type]:
+        match operator.type:
+            case TT.PLUS:
+                list_ptr1 = self.builder.gep(left_value,
+                                             [self.int_type(0)] if isinstance(left_value.type, ir.ArrayType) else [
+                                                 self.int_type(0), self.int_type(0)], name="list_ptr1")
+                list_ptr2 = self.builder.gep(right_value,
+                                             [self.int_type(0)] if isinstance(left_value.type, ir.ArrayType) else [
+                                                 self.int_type(0), self.int_type(0)], name="list_ptr2")
+            # todo
+
+    def str_bin_op(self, left_value: ir.Value, right_value: ir.Value, operator: Token) -> tuple[ir.Value, ir.Type]:
+
+        match operator.type:
+            case TT.PLUS:
+                str_ptr1 = self.builder.gep(left_value, [self.int_type(0)] if left_value.type == self.str_type else [
+                    self.int_type(0), self.int_type(0)], name="str_ptr1")
+                str_ptr2 = self.builder.gep(right_value, [self.int_type(0)] if left_value.type == self.str_type else [
+                    self.int_type(0), self.int_type(0)], name="str_ptr2")
+
+                len1 = self.builder.call(self.module.globals.get("strlen"), [str_ptr1], name="len1")
+
+                len2 = self.builder.call(self.module.globals.get("strlen"), [str_ptr2], name="len2")
+
+                # Allocate Memory
+                total_length = self.builder.add(len1, len2)
+                concat_ptr = self.builder.call(self.module.globals.get("malloc"), [total_length], name="concat_ptr")
+
+                # Copy the first string (left_value) into the allocated memory
+                self.builder.call(self.builder.function.module.globals.get("strcpy"), [concat_ptr, str_ptr1],
+                                  name="copy_ptr1")
+
+                # Calculate the offset for appending the second string (right_value)
+                offset_ptr2 = self.builder.gep(concat_ptr, [len1], name="offset_ptr2")
+
+                # Copy the second string (right_value) into the allocated memory at the offset position
+                self.builder.call(self.builder.function.module.globals.get("strcpy"), [offset_ptr2, str_ptr2],
+                                  name="copy_ptr1")
+
+                value = concat_ptr
+
+                Type = value.type
+
+            case _:
+                print_err(f'No such operation on string and string: {operator}')
+
+        return value, Type
+
+    def str_int_bin_op(self, left_value: ir.Value, right_value: ir.Value, operator: Token) -> tuple[ir.Value, ir.Type]:
+        match operator.type:
+            case TT.GET:
+                char_ptr = self.builder.gep(left_value,
+                                            [right_value] if left_value.type == self.str_type else [self.int_type(0),
+                                                right_value], name="str_idx_ptr")
+                i8_value = self.builder.load(char_ptr, name='char_i8_value')
+                arr_ptr = self.allocator.alloca(ir.ArrayType(self.byte_type, 2), name='char_str_ptr')
+                self.builder._anchor += 1
+                c_ptr = self.builder.gep(arr_ptr, [self.int_type(0), self.int_type(0)], name='real_char_ptr')
+                self.builder.store(i8_value, c_ptr)
+                none_ptr = self.builder.gep(arr_ptr, [self.int_type(0), self.int_type(1)], name='none_ptr')
+                self.builder.store(self.byte_type(0), none_ptr)
+                value = arr_ptr
+                Type = arr_ptr.type
+            case _:
+                print_err(f'No such operation on string and int: {operator}')
+        return value, Type
+
     def printf(self, params: list[ir.Value], return_type: ir.Type) -> ir.CallInstr:
         func, _ = self.env.lookup('printf')
-        c_str = self.builder.alloca(return_type, name='c_str')
+        c_str = self.allocator.alloca(return_type, name='c_str')
+        self.builder._anchor += 1
         self.builder.store(params[0], c_str)
 
         rest_params = params[1:]
@@ -677,8 +781,34 @@ class IrBuilder:
             fmt_arg = self.builder.bitcast(string_val, self.str_type, name='c_str_to_ptr')
             return self.builder.call(func, [fmt_arg, *rest_params], name='printf.ret')
         else:
-            fmt_arg = self.builder.bitcast(self.module.get_global(f'__str_{self.counter}'), self.str_type, name='c_str_to_ptr')
+            fmt_arg = self.builder.bitcast(self.module.get_global(f'__str_{self.counter}'), self.str_type,
+                                           name='c_str_to_ptr')
             return self.builder.call(func, [fmt_arg, *rest_params], name='printf.ret')
+
+    def is_str(self, typ: ir.Type) -> bool:
+        if typ == self.str_type:
+            return True
+        if isinstance(typ, ir.ArrayType):
+            if typ.element == self.byte_type:
+                return True
+            return False
+        if typ.is_pointer:
+            if typ.pointee == self.str_type:
+                return True
+            if isinstance(typ.pointee, ir.ArrayType):
+                if typ.pointee.element == self.byte_type:
+                    return True
+                return False
+        return False
+
+    def is_list(self, typ: ir.Type) -> bool:
+        if self.is_str(typ):
+            return False
+        if isinstance(typ, ir.ArrayType):
+            return True
+        if typ.is_pointer and isinstance(typ.pointee, ir.ArrayType):
+            return True
+        return False
 
 
 class Struct:
@@ -690,11 +820,14 @@ class Struct:
 class Allocator:
     def __init__(self):
         self.alloca_builder = ir.IRBuilder()
+        self.node = AllocNode()
         self.block: ir.Block | None = None
         self.instr: ir.Instruction | None = None
 
     def set_block(self, block: ir.Block) -> Allocator:
+        self.node = AllocNode(self.node, block)
         self.block = block
+        self.instr = None
         return self
 
     def alloca(self, typ: ir.Type, name: str) -> ir.AllocaInstr:
@@ -706,6 +839,7 @@ class Allocator:
 
         ret = self.alloca_builder.alloca(typ, name=name)
         self.instr = ret
+        self.node.instr = ret
 
         return ret
 
@@ -713,5 +847,18 @@ class Allocator:
         pass
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.block = None
-        self.instr = None
+        self.node = self.node.last_node
+        if not self.node:
+            self.block = None
+            self.instr = None
+        else:
+            self.block = self.node.block
+            self.instr = self.node.instr
+
+
+class AllocNode:
+    def __init__(self, last_node: AllocNode | None = None, block: ir.Block | None = None,
+                 instr: ir.Instruction | None = None):
+        self.last_node = last_node
+        self.block = block
+        self.instr = instr
