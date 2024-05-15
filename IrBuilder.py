@@ -716,6 +716,7 @@ class IrBuilder:
                                              [self.int_type(0)] if isinstance(left_value.type, ir.ArrayType) else [
                                                  self.int_type(0), self.int_type(0)], name="list_ptr2")
                 len1 = self.builder.call()
+                 # todo concat lists!
 
     def str_bin_op(self, left_value: ir.Value, right_value: ir.Value, operator: Token) -> tuple[ir.Value, ir.Type]:
 

@@ -4,4 +4,4 @@ fun lst() -> list<int>:
 fun main() {
     a <- lst()
     print('%i', a[1])
-}
+}}

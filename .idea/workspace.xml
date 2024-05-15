@@ -4,10 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="bfe04db2-d8d8-4286-a2bd-6d3eaa2f1670" name="Changes" comment="do some important stuff">
+    <list default="true" id="bfe04db2-d8d8-4286-a2bd-6d3eaa2f1670" name="Changes" comment="fix lists">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/IrBuilder.py" beforeDir="false" afterPath="$PROJECT_DIR$/IrBuilder.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/debug/main" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Methods.py" beforeDir="false" afterPath="$PROJECT_DIR$/Methods.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/debug/main.json" beforeDir="false" afterPath="$PROJECT_DIR$/debug/main.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/debug/main.ll" beforeDir="false" afterPath="$PROJECT_DIR$/debug/main.ll" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/debug/main.tss" beforeDir="false" afterPath="$PROJECT_DIR$/debug/main.tss" afterDir="false" />
@@ -49,7 +49,7 @@
     "Python.main.executor": "Run",
     "Python.main.tss.executor": "Debug",
     "Python.printf.executor": "Debug",
-    "Python.run.executor": "Debug",
+    "Python.run.executor": "Run",
     "Python.test.executor": "Run",
     "Python.test_binding.executor": "Run",
     "Python.test_ir.executor": "Debug",
@@ -390,7 +390,23 @@
       <option name="project" value="LOCAL" />
       <updated>1715781419500</updated>
     </task>
-    <option name="localTasksCounter" value="26" />
+    <task id="LOCAL-00026" summary="fix lists">
+      <option name="closed" value="true" />
+      <created>1715785597790</created>
+      <option name="number" value="00026" />
+      <option name="presentableId" value="LOCAL-00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1715785597790</updated>
+    </task>
+    <task id="LOCAL-00027" summary="fix lists">
+      <option name="closed" value="true" />
+      <created>1715785680118</created>
+      <option name="number" value="00027" />
+      <option name="presentableId" value="LOCAL-00027" />
+      <option name="project" value="LOCAL" />
+      <updated>1715785680118</updated>
+    </task>
+    <option name="localTasksCounter" value="28" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -427,7 +443,8 @@
     <MESSAGE value="add classes" />
     <MESSAGE value="ast as json" />
     <MESSAGE value="do some important stuff" />
-    <option name="LAST_COMMIT_MESSAGE" value="do some important stuff" />
+    <MESSAGE value="fix lists" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix lists" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -454,37 +471,37 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/IrBuilder.py</url>
-          <line>767</line>
+          <line>771</line>
           <option name="timeStamp" value="244" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/IrBuilder.py</url>
-          <line>698</line>
+          <line>701</line>
           <option name="timeStamp" value="247" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/IrBuilder.py</url>
-          <line>461</line>
+          <line>464</line>
           <option name="timeStamp" value="250" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/IrBuilder.py</url>
-          <line>448</line>
+          <line>451</line>
           <option name="timeStamp" value="251" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/IrBuilder.py</url>
-          <line>714</line>
+          <line>717</line>
           <option name="timeStamp" value="256" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/IrBuilder.py</url>
-          <line>498</line>
+          <line>501</line>
           <option name="timeStamp" value="262" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/IrBuilder.py</url>
-          <line>499</line>
+          <line>502</line>
           <option name="timeStamp" value="274" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
