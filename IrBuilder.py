@@ -140,7 +140,7 @@ class IrBuilder:
         param_types: list[ir.Type] = []
         for t in node.arg_types:
             Type = self.get_type(t.value)
-            if isinstance(Type, ir.BaseStructType):  # todo pass in arrays?
+            if isinstance(Type, ir.BaseStructType):
                 Type = Type.as_pointer()
             param_types.append(Type)
         return_type = self.get_type(node.return_type.value)
@@ -815,7 +815,7 @@ class IrBuilder:
         if isinstance(typ, ir.ArrayType):
             return True
         if typ.is_pointer:
-            return True
+            return True  # fixme (can't be right, but how then?)
         return False
 
 
