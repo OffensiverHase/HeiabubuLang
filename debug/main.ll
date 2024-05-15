@@ -20,26 +20,30 @@ load_main_entry:
   ret i32 0
 }
 
-define void @"main"()
+define i32* @"lst"()
 {
-main_entry:
-  %"list_ptr" = alloca [4 x i32]
-  %"b" = alloca [4 x i32]*
-  %"c_str" = alloca i8*
-  %"array.0" = getelementptr [4 x i32], [4 x i32]* %"list_ptr", i32 0, i32 0
+lst_entry:
+  %"list_ptr" = alloca [3 x i32]
+  %"array.0" = getelementptr [3 x i32], [3 x i32]* %"list_ptr", i32 0, i32 0
   store i32 1, i32* %"array.0"
   %"array.0.1" = getelementptr i32, i32* %"array.0", i32 1
   store i32 2, i32* %"array.0.1"
   %"array.1" = getelementptr i32, i32* %"array.0.1", i32 1
   store i32 3, i32* %"array.1"
-  %"array.2" = getelementptr i32, i32* %"array.1", i32 1
-  store i32 4, i32* %"array.2"
-  store [4 x i32]* %"list_ptr", [4 x i32]** %"b"
-  %"nop" = add i32 0, 0
+  %"ret_temp" = getelementptr [3 x i32], [3 x i32]* %"list_ptr", i32 0, i32 0
+  ret i32* %"ret_temp"
+}
+
+define void @"main"()
+{
+main_entry:
+  %"a" = alloca i32*
+  %"c_str" = alloca i8*
+  %"lst.ret" = call i32* @"lst"()
+  store i32* %"lst.ret", i32** %"a"
   %"str_bitcast" = bitcast [3 x i8]* @"__str_0" to i8*
-  %"b.1" = load [4 x i32]*, [4 x i32]** %"b"
-  %"list_to_ptr" = bitcast [4 x i32]* %"b.1" to i32*
-  %"list_element_ptr" = getelementptr i32, i32* %"list_to_ptr", i32 1
+  %"a.1" = load i32*, i32** %"a"
+  %"list_element_ptr" = getelementptr i32, i32* %"a.1", i32 1
   %"list_element" = load i32, i32* %"list_element_ptr"
   store i8* %"str_bitcast", i8** %"c_str"
   %"c_str_to_ptr" = bitcast [3 x i8]* @"__str_0" to i8*
@@ -47,4 +51,4 @@ main_entry:
   ret void
 }
 
-@"__str_0" = internal constant [3 x i8] c"%s\00"
+@"__str_0" = internal constant [3 x i8] c"%i\00"

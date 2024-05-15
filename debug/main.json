@@ -3,6 +3,32 @@
   "body": [
     {
       "type": "fun_def",
+      "identifier": "IDENTIFIER: lst",
+      "params": {},
+      "fun_body": {
+        "type": "return",
+        "value": {
+          "type": "list",
+          "content": [
+            {
+              "type": "number",
+              "number": "INT: 1"
+            },
+            {
+              "type": "number",
+              "number": "INT: 2"
+            },
+            {
+              "type": "number",
+              "number": "INT: 3"
+            }
+          ]
+        }
+      },
+      "ret_type": "TYPE: list:int"
+    },
+    {
+      "type": "fun_def",
       "identifier": "IDENTIFIER: main",
       "params": {},
       "fun_body": {
@@ -10,32 +36,13 @@
         "body": [
           {
             "type": "var_assign",
-            "identifier": "IDENTIFIER: b",
-            "type_annotation": "TYPE: str",
+            "identifier": "IDENTIFIER: a",
+            "type_annotation": "none",
             "value": {
-              "type": "list",
-              "content": [
-                {
-                  "type": "number",
-                  "number": "INT: 1"
-                },
-                {
-                  "type": "number",
-                  "number": "INT: 2"
-                },
-                {
-                  "type": "number",
-                  "number": "INT: 3"
-                },
-                {
-                  "type": "number",
-                  "number": "INT: 4"
-                }
-              ]
+              "type": "fun_call",
+              "identifier": "IDENTIFIER: lst",
+              "args": []
             }
-          },
-          {
-            "type": "pass"
           },
           {
             "type": "fun_call",
@@ -49,7 +56,7 @@
                 "type": "bin_op",
                 "left": {
                   "type": "var_access",
-                  "identifier": "IDENTIFIER: b"
+                  "identifier": "IDENTIFIER: a"
                 },
                 "operator": "GET",
                 "right": {

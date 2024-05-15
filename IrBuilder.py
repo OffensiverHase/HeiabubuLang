@@ -54,7 +54,7 @@ class IrBuilder:
         if name.startswith('list'):
             list_type = name.removeprefix('list:')
             list_type = self.get_type(list_type)
-            return ir.PointerType(list_type)
+            return list_type.as_pointer()
         else:
             Type: ir.Type | None = None
             try:
@@ -140,10 +140,12 @@ class IrBuilder:
         param_types: list[ir.Type] = []
         for t in node.arg_types:
             Type = self.get_type(t.value)
-            if isinstance(Type, ir.BaseStructType):
+            if isinstance(Type, ir.BaseStructType):  # todo pass in arrays?
                 Type = Type.as_pointer()
             param_types.append(Type)
         return_type = self.get_type(node.return_type.value)
+        if return_type.__class__ in [ir.IdentifiedStructType, ir.LiteralStructType]:
+            return_type = return_type.as_pointer()
 
         fun_type = ir.FunctionType(return_type, param_types)
         func = ir.Function(self.module, fun_type, name)
@@ -190,9 +192,14 @@ class IrBuilder:
 
         value, Type = self.resolve(value_node)
 
-        if Type.is_pointer:
+        if self.is_str(Type):
             ptr_to_array = self.builder.gep(value,
                                             [self.int_type(0), self.int_type(0)] if Type.pointee.is_pointer else [
+                                                self.int_type(0)], name='ret_temp')
+            self.builder.ret(ptr_to_array)
+        elif self.is_list(Type):
+            ptr_to_array = self.builder.gep(value,
+                                            [self.int_type(0), self.int_type(0)] if self.is_list(Type.pointee) else [
                                                 self.int_type(0)], name='ret_temp')
             self.builder.ret(ptr_to_array)
         else:
@@ -708,7 +715,7 @@ class IrBuilder:
                 list_ptr2 = self.builder.gep(right_value,
                                              [self.int_type(0)] if isinstance(left_value.type, ir.ArrayType) else [
                                                  self.int_type(0), self.int_type(0)], name="list_ptr2")
-            # todo
+                len1 = self.builder.call()
 
     def str_bin_op(self, left_value: ir.Value, right_value: ir.Value, operator: Token) -> tuple[ir.Value, ir.Type]:
 
@@ -752,7 +759,8 @@ class IrBuilder:
             case TT.GET:
                 char_ptr = self.builder.gep(left_value,
                                             [right_value] if left_value.type == self.str_type else [self.int_type(0),
-                                                right_value], name="str_idx_ptr")
+                                                                                                    right_value],
+                                            name="str_idx_ptr")
                 i8_value = self.builder.load(char_ptr, name='char_i8_value')
                 arr_ptr = self.allocator.alloca(ir.ArrayType(self.byte_type, 2), name='char_str_ptr')
                 self.builder._anchor += 1
@@ -806,7 +814,7 @@ class IrBuilder:
             return False
         if isinstance(typ, ir.ArrayType):
             return True
-        if typ.is_pointer and isinstance(typ.pointee, ir.ArrayType):
+        if typ.is_pointer:
             return True
         return False
 

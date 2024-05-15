@@ -1,5 +1,7 @@
+fun lst() -> list<int>:
+    return [1,2,3]
+
 fun main() {
-    b: str <- [1,2,3,4]
-    pass
-    print('%s', b[1])
+    a <- lst()
+    print('%i', a[1])
 }

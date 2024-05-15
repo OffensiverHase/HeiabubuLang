@@ -4,14 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="bfe04db2-d8d8-4286-a2bd-6d3eaa2f1670" name="Changes" comment="ast as json">
-      <change afterPath="$PROJECT_DIR$/debug/main.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/debug/main.ll" afterDir="false" />
+    <list default="true" id="bfe04db2-d8d8-4286-a2bd-6d3eaa2f1670" name="Changes" comment="do some important stuff">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/IrBuilder.py" beforeDir="false" afterPath="$PROJECT_DIR$/IrBuilder.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Parser.py" beforeDir="false" afterPath="$PROJECT_DIR$/Parser.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Shell.py" beforeDir="false" afterPath="$PROJECT_DIR$/Shell.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/debug/main" beforeDir="false" afterPath="$PROJECT_DIR$/debug/main" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/debug/main" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/debug/main.json" beforeDir="false" afterPath="$PROJECT_DIR$/debug/main.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/debug/main.ll" beforeDir="false" afterPath="$PROJECT_DIR$/debug/main.ll" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/debug/main.tss" beforeDir="false" afterPath="$PROJECT_DIR$/debug/main.tss" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -49,9 +47,9 @@
     "Python.IrBuilder.executor": "Debug",
     "Python.Shell.executor": "Debug",
     "Python.main.executor": "Run",
-    "Python.main.tss.executor": "Run",
+    "Python.main.tss.executor": "Debug",
     "Python.printf.executor": "Debug",
-    "Python.run.executor": "Run",
+    "Python.run.executor": "Debug",
     "Python.test.executor": "Run",
     "Python.test_binding.executor": "Run",
     "Python.test_ir.executor": "Debug",
@@ -72,7 +70,7 @@
       <recent name="$PROJECT_DIR$/debug" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.main.tss">
+  <component name="RunManager" selected="Python.run">
     <configuration name="main.tss" type="PythonConfigurationType" factoryName="Python">
       <module name="TenessPy" />
       <option name="ENV_FILES" value="" />
@@ -384,7 +382,15 @@
       <option name="project" value="LOCAL" />
       <updated>1715509155581</updated>
     </task>
-    <option name="localTasksCounter" value="25" />
+    <task id="LOCAL-00025" summary="do some important stuff">
+      <option name="closed" value="true" />
+      <created>1715781419500</created>
+      <option name="number" value="00025" />
+      <option name="presentableId" value="LOCAL-00025" />
+      <option name="project" value="LOCAL" />
+      <updated>1715781419500</updated>
+    </task>
+    <option name="localTasksCounter" value="26" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -420,7 +426,8 @@
     <MESSAGE value="add opt" />
     <MESSAGE value="add classes" />
     <MESSAGE value="ast as json" />
-    <option name="LAST_COMMIT_MESSAGE" value="ast as json" />
+    <MESSAGE value="do some important stuff" />
+    <option name="LAST_COMMIT_MESSAGE" value="do some important stuff" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -447,40 +454,52 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/IrBuilder.py</url>
-          <line>761</line>
+          <line>767</line>
           <option name="timeStamp" value="244" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/IrBuilder.py</url>
-          <line>694</line>
+          <line>698</line>
           <option name="timeStamp" value="247" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/IrBuilder.py</url>
-          <line>540</line>
-          <option name="timeStamp" value="248" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/IrBuilder.py</url>
-          <line>457</line>
+          <line>461</line>
           <option name="timeStamp" value="250" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/IrBuilder.py</url>
-          <line>444</line>
+          <line>448</line>
           <option name="timeStamp" value="251" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/IrBuilder.py</url>
-          <line>264</line>
-          <option name="timeStamp" value="253" />
+          <line>714</line>
+          <option name="timeStamp" value="256" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/IrBuilder.py</url>
-          <line>503</line>
-          <option name="timeStamp" value="255" />
+          <line>498</line>
+          <option name="timeStamp" value="262" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/IrBuilder.py</url>
+          <line>499</line>
+          <option name="timeStamp" value="274" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/IrBuilder.py</url>
+          <line>194</line>
+          <option name="timeStamp" value="276" />
         </line-breakpoint>
       </breakpoints>
+      <default-breakpoints>
+        <breakpoint type="python-exception">
+          <properties notifyOnTerminate="true" exception="BaseException">
+            <option name="notifyOnTerminate" value="true" />
+          </properties>
+        </breakpoint>
+      </default-breakpoints>
     </breakpoint-manager>
   </component>
 </project>
