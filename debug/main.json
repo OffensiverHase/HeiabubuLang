@@ -1,1 +1,113 @@
-Invalid Syntax: Expected expression, got RCURLY, File main, line 7, pos 1
+{
+  "type": "statement",
+  "body": [
+    {
+      "type": "class_def",
+      "fields": "{IDENTIFIER: x: TYPE: int}",
+      "functions": [
+        {
+          "type": "fun_def",
+          "identifier": "IDENTIFIER: nice",
+          "params": {
+            "IDENTIFIER: self": "TYPE: A"
+          },
+          "fun_body": {
+            "type": "return",
+            "value": {
+              "type": "number",
+              "number": "INT: 69"
+            }
+          },
+          "ret_type": "TYPE: int"
+        },
+        {
+          "type": "fun_def",
+          "identifier": "IDENTIFIER: hell_yeah",
+          "params": {
+            "IDENTIFIER: self": "TYPE: A"
+          },
+          "fun_body": {
+            "type": "statement",
+            "body": [
+              {
+                "type": "fun_call",
+                "identifier": "IDENTIFIER: print",
+                "args": [
+                  {
+                    "type": "str",
+                    "value": "STRING: %i\\n"
+                  },
+                  {
+                    "type": "fun_call",
+                    "identifier": "IDENTIFIER: nice",
+                    "args": [
+                      {
+                        "type": "var_access",
+                        "identifier": "IDENTIFIER: self"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "fun_call",
+                "identifier": "IDENTIFIER: print",
+                "args": [
+                  {
+                    "type": "str",
+                    "value": "STRING: %i\\n"
+                  },
+                  {
+                    "type": "object_read",
+                    "object": {
+                      "type": "var_access",
+                      "identifier": "IDENTIFIER: self"
+                    },
+                    "key": "IDENTIFIER: x"
+                  }
+                ]
+              }
+            ]
+          },
+          "ret_type": "TYPE: null"
+        }
+      ]
+    },
+    {
+      "type": "fun_def",
+      "identifier": "IDENTIFIER: main",
+      "params": {},
+      "fun_body": {
+        "type": "statement",
+        "body": [
+          {
+            "type": "var_assign",
+            "identifier": "IDENTIFIER: obj",
+            "type_annotation": "none",
+            "value": {
+              "type": "fun_call",
+              "identifier": "IDENTIFIER: A",
+              "args": [
+                {
+                  "type": "number",
+                  "number": "INT: 420"
+                }
+              ]
+            }
+          },
+          {
+            "type": "fun_call",
+            "identifier": "IDENTIFIER: hell_yeah",
+            "args": [
+              {
+                "type": "var_access",
+                "identifier": "IDENTIFIER: obj"
+              }
+            ]
+          }
+        ]
+      },
+      "ret_type": "TYPE: null"
+    }
+  ]
+}

@@ -67,11 +67,16 @@ def run(text: str, file: str):
     ast = parser.parse()
     if isinstance(ast, Error):
         fail(ast)
+        return
     if AST_DEBUG:
         with open(OUTPUT + '.json', 'w') as f:
             f.write(ast.__str__())
     builder = IrBuilder(ctx)
-    builder.build(ast)
+    try:
+        builder.build(ast)
+    except Error as e:
+        fail(e)
+        return
     module = builder.module
     module.triple = llvm.get_default_triple()
     if IR_DEBUG:
@@ -151,6 +156,6 @@ def run_jit(module: llvmlite.ir.Module, file: str):
     if entry == 0:
         entry = engine.get_function_address(f'load_{file}')
     c_func = CFUNCTYPE(c_int)(entry)
-    print('Starting...\n')
+    print('\n\nStarting...\n')
     result = c_func()
     print(f'\nReturned {result}')

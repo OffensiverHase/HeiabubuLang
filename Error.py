@@ -32,12 +32,12 @@ class UnknownNodeError(Error):
         super().__init__("Unknown Node", details, pos, context, stage)
 
 
-class NoSuchVarError(Exception):
+class NoSuchVarError(Error):
     def __init__(self, details: str, pos: Position, context: Context, stage: str):
         super().__init__("No such Variable", details, pos, context, stage)
 
 
-class ExceptionError(Exception):
+class ExceptionError(Error):
     def __init__(self, exception, pos: Position, context: Context, stage: str):
         super().__init__("Compiler Error", f"Compiler threw Exception {exception}!", pos, context, stage)
 

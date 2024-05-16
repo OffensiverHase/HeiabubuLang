@@ -5,18 +5,13 @@ import os.path
 from llvmlite import ir
 from llvmlite.ir import CompareInstr, GlobalVariable
 
-from Context import Context
 from Env import Environment
-from Error import Error
+from Error import *
 from Lexer import Lexer
 from Methods import print_err
 from Node import *
 from Parser import Parser
 from Token import TT
-
-
-def visit_unknown_node(node: Node):
-    print_err(f'Found unknown node: {node.__class__.__name__}!')
 
 
 class IrBuilder:
@@ -122,7 +117,7 @@ class IrBuilder:
                 self.builder.ret(self.int_type(0))
 
     def visit(self, node: Node) -> tuple[ir.Value, ir.Type] | None:
-        method = getattr(self, 'visit' + node.__class__.__name__, visit_unknown_node)
+        method = getattr(self, 'visit' + node.__class__.__name__, self.visit_unknown_node)
         return method(node)
 
     def visitNumberNode(self, node: NumberNode) -> tuple[ir.Value, ir.Type]:
@@ -483,10 +478,9 @@ class IrBuilder:
         if isinstance(ast, Error):
             print_err(f'Error while importing file {file_path}: {ast}')
 
-        ir_builder = IrBuilder(ctx)
-        ir_builder.visit(ast)
+        self.visit(ast)
 
-        self.global_imports[file_path] = ast
+        self.global_imports[file_path] = True
 
     def visitFunCallNode(self, node: FunCallNode) -> tuple[ir.Value, ir.Type]:
         name = node.identifier.value
@@ -556,6 +550,11 @@ class IrBuilder:
 
     def visitPassNode(self, _: PassNode):
         self.builder.add(self.int_type(0), self.int_type(0), 'nop')
+
+    def visit_unknown_node(self, node: Node):
+        err = UnknownNodeError(f'Found unknown node: {node.__class__.__name__}!', 'Unknown Position', self.context,
+                               'compiling')
+        raise err
 
     def resolve(self, node: Node, value_type: str | None = None) -> tuple[ir.Value, ir.Type]:
         match node:
@@ -715,11 +714,10 @@ class IrBuilder:
                 list_ptr2 = self.builder.gep(right_value,
                                              [self.int_type(0)] if isinstance(left_value.type, ir.ArrayType) else [
                                                  self.int_type(0), self.int_type(0)], name="list_ptr2")
-                len1 = self.builder.call()
-                 # todo concat lists!
+                len1 = self.builder.call()  # todo concat lists!
 
     def str_bin_op(self, left_value: ir.Value, right_value: ir.Value, operator: Token) -> tuple[ir.Value, ir.Type]:
-
+        value, Type = None, None
         match operator.type:
             case TT.PLUS:
                 str_ptr1 = self.builder.gep(left_value, [self.int_type(0)] if left_value.type == self.str_type else [

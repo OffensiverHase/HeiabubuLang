@@ -386,7 +386,7 @@ class Parser:
                             self.ignore_newlines()
                         else:
                             fun: FunDefNode = self.expression()
-                            if fun is Error:
+                            if isinstance(fun, Error):
                                 return fun
                             fun.args.insert(0, Token(TT.IDENTIFIER, 'self', self.current_token.pos))
                             fun.arg_types.insert(0, Token(TT.TYPE, name.value, self.current_token.pos))

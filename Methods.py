@@ -16,11 +16,11 @@ def fail(error: Error):
 
 def arrow_str(pos: Position, context: Context):
     if pos.line > 0:
-        line_before = f'{pos.line - 1}\t|\t{context.file_text.splitlines()[pos.line - 1]}'
-        print_err(f'{line_before}')
+        line_before = f'{(pos.line + 1) - 1}\t|\t{context.file_text.splitlines()[pos.line - 1]}'
+        print_err(line_before)
         print_err('\t|')
 
-    line = f'{pos.line}\t|\t{context.file_text.splitlines()[pos.line]}'
+    line = f'{(pos.line + 1)}\t|\t{context.file_text.splitlines()[pos.line]}'
     arrow = '\t|\t '
     for i in range(pos.column - 1):
         arrow += ' '
@@ -28,8 +28,8 @@ def arrow_str(pos: Position, context: Context):
     print_err(line)
     print_err(arrow)
 
-    if pos.line + 1 > len(context.file_text.splitlines()):
-        line_after = f'{pos.line + 1}\t|\t{context.file_text.splitlines()[pos.line + 1]}'
+    if pos.line + 1 < len(context.file_text.splitlines()):
+        line_after = f'{(pos.line + 1) + 1}\t|\t{context.file_text.splitlines()[pos.line + 1]}'
         print_err(f'{line_after}')
         print_err('\t|')
     print_err()

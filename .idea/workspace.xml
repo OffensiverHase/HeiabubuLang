@@ -4,10 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="bfe04db2-d8d8-4286-a2bd-6d3eaa2f1670" name="Changes" comment="fix lists">
+    <list default="true" id="bfe04db2-d8d8-4286-a2bd-6d3eaa2f1670" name="Changes" comment="better errors">
+      <change afterPath="$PROJECT_DIR$/debug/main" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Error.py" beforeDir="false" afterPath="$PROJECT_DIR$/Error.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/IrBuilder.py" beforeDir="false" afterPath="$PROJECT_DIR$/IrBuilder.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Methods.py" beforeDir="false" afterPath="$PROJECT_DIR$/Methods.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Parser.py" beforeDir="false" afterPath="$PROJECT_DIR$/Parser.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Shell.py" beforeDir="false" afterPath="$PROJECT_DIR$/Shell.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/debug/main.json" beforeDir="false" afterPath="$PROJECT_DIR$/debug/main.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/debug/main.ll" beforeDir="false" afterPath="$PROJECT_DIR$/debug/main.ll" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/debug/main.tss" beforeDir="false" afterPath="$PROJECT_DIR$/debug/main.tss" afterDir="false" />
@@ -47,9 +51,10 @@
     "Python.IrBuilder.executor": "Debug",
     "Python.Shell.executor": "Debug",
     "Python.main.executor": "Run",
-    "Python.main.tss.executor": "Debug",
+    "Python.main.tss.executor": "Run",
     "Python.printf.executor": "Debug",
     "Python.run.executor": "Run",
+    "Python.run_opt.executor": "Run",
     "Python.test.executor": "Run",
     "Python.test_binding.executor": "Run",
     "Python.test_ir.executor": "Debug",
@@ -70,7 +75,7 @@
       <recent name="$PROJECT_DIR$/debug" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.run">
+  <component name="RunManager" selected="Python.run_opt">
     <configuration name="main.tss" type="PythonConfigurationType" factoryName="Python">
       <module name="TenessPy" />
       <option name="ENV_FILES" value="" />
@@ -117,7 +122,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="test_binding" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="run_opt" type="PythonConfigurationType" factoryName="Python">
       <module name="TenessPy" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -126,12 +131,13 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$USER_HOME$/miniconda3/lib/python3.12/site-packages/llvmlite/tests" />
-      <option name="IS_MODULE_SDK" value="true" />
+      <option name="SDK_NAME" value="$USER_HOME$/miniconda3" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$USER_HOME$/miniconda3/lib/python3.12/site-packages/llvmlite/tests/test_binding.py" />
-      <option name="PARAMETERS" value="" />
+      <option name="SCRIPT_NAME" value="main.py" />
+      <option name="PARAMETERS" value="debug/main.tss -d ir -d ast -run" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -164,13 +170,12 @@
     <list>
       <item itemvalue="Python.main.tss" />
       <item itemvalue="Python.run" />
+      <item itemvalue="Python.run_opt" />
       <item itemvalue="Python.tests" />
-      <item itemvalue="Python.test_binding" />
     </list>
     <recent_temporary>
       <list>
         <item itemvalue="Python.tests" />
-        <item itemvalue="Python.test_binding" />
       </list>
     </recent_temporary>
   </component>
@@ -406,7 +411,15 @@
       <option name="project" value="LOCAL" />
       <updated>1715785680118</updated>
     </task>
-    <option name="localTasksCounter" value="28" />
+    <task id="LOCAL-00028" summary="better errors">
+      <option name="closed" value="true" />
+      <created>1715802918672</created>
+      <option name="number" value="00028" />
+      <option name="presentableId" value="LOCAL-00028" />
+      <option name="project" value="LOCAL" />
+      <updated>1715802918672</updated>
+    </task>
+    <option name="localTasksCounter" value="29" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -444,7 +457,8 @@
     <MESSAGE value="ast as json" />
     <MESSAGE value="do some important stuff" />
     <MESSAGE value="fix lists" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix lists" />
+    <MESSAGE value="better errors" />
+    <option name="LAST_COMMIT_MESSAGE" value="better errors" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -461,7 +475,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/Shell.py</url>
-          <line>121</line>
+          <line>126</line>
           <option name="timeStamp" value="176" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -471,22 +485,17 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/IrBuilder.py</url>
-          <line>771</line>
+          <line>770</line>
           <option name="timeStamp" value="244" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/IrBuilder.py</url>
-          <line>701</line>
-          <option name="timeStamp" value="247" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/IrBuilder.py</url>
-          <line>464</line>
+          <line>459</line>
           <option name="timeStamp" value="250" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/IrBuilder.py</url>
-          <line>451</line>
+          <line>446</line>
           <option name="timeStamp" value="251" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -495,19 +504,24 @@
           <option name="timeStamp" value="256" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/IrBuilder.py</url>
-          <line>501</line>
-          <option name="timeStamp" value="262" />
+          <url>file://$PROJECT_DIR$/Methods.py</url>
+          <line>17</line>
+          <option name="timeStamp" value="279" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/IrBuilder.py</url>
-          <line>502</line>
-          <option name="timeStamp" value="274" />
+          <line>778</line>
+          <option name="timeStamp" value="280" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/IrBuilder.py</url>
-          <line>194</line>
-          <option name="timeStamp" value="276" />
+          <url>file://$PROJECT_DIR$/Parser.py</url>
+          <line>387</line>
+          <option name="timeStamp" value="283" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/Parser.py</url>
+          <line>388</line>
+          <option name="timeStamp" value="284" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>

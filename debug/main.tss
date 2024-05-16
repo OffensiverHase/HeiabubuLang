@@ -1,7 +1,15 @@
-fun lst() -> list<int>:
-    return [1,2,3]
+class A {
+    x: int
 
+    fun nice() -> int:
+        return 69
+
+    fun hell_yeah() {
+        print('%i\n', self.nice())
+        print('%i\n', self.x)
+    }
+}
 fun main() {
-    a <- lst()
-    print('%i', a[1])
-}}
+    obj <- A(420)
+    obj.hell_yeah()
+}
