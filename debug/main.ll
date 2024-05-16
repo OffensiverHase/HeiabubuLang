@@ -20,23 +20,31 @@ define i32 @"load_main"()
 load_main_entry:
   %"A" = alloca %"A"
   %"obj" = alloca %"A"*
-  %"x" = alloca i8*
   %"A.x_ptr" = getelementptr %"A", %"A"* %"A", i32 0, i32 0
   store i32 420, i32* %"A.x_ptr"
   store %"A"* %"A", %"A"** %"obj"
   %"obj.1" = load %"A"*, %"A"** %"obj"
   call void @"hell_yeah"(%"A"* %"obj.1")
-  %"str_ptr1" = getelementptr [3 x i8], [3 x i8]* @"__str_2", i32 0, i32 0
-  %"str_ptr2" = getelementptr [4 x i8], [4 x i8]* @"__str_3", i32 0, i32 0
-  %"len1" = call i32 @"strlen"(i8* %"str_ptr1")
-  %"len2" = call i32 @"strlen"(i8* %"str_ptr2")
-  %".4" = add i32 %"len1", %"len2"
-  %"concat_ptr" = call i8* @"malloc"(i32 %".4")
-  %"copy_ptr1" = call i8* @"strcpy"(i8* %"concat_ptr", i8* %"str_ptr1")
-  %"offset_ptr2" = getelementptr i8, i8* %"concat_ptr", i32 %"len1"
-  %"copy_ptr1.1" = call i8* @"strcpy"(i8* %"offset_ptr2", i8* %"str_ptr2")
-  store i8* %"concat_ptr", i8** %"x"
   ret i32 0
+}
+
+define i32* @"lst"(i32 %".1", i32 %".2")
+{
+lst_entry:
+  %"list_ptr" = alloca [2 x i32]
+  %"elem1" = alloca i32
+  %"elem2" = alloca i32
+  store i32 %".1", i32* %"elem1"
+  store i32 %".2", i32* %"elem2"
+  %"elem1.1" = load i32, i32* %"elem1"
+  %"elem1.2" = load i32, i32* %"elem1"
+  %"elem2.1" = load i32, i32* %"elem2"
+  %"array.0" = getelementptr [2 x i32], [2 x i32]* %"list_ptr", i32 0, i32 0
+  store i32 %"elem1.2", i32* %"array.0"
+  %"array.0.1" = getelementptr i32, i32* %"array.0", i32 1
+  store i32 %"elem2.1", i32* %"array.0.1"
+  %"ret_temp" = getelementptr [2 x i32], [2 x i32]* %"list_ptr", i32 0, i32 0
+  ret i32* %"ret_temp"
 }
 
 define i32 @"nice"(%"A"* %".1")
@@ -72,5 +80,3 @@ hell_yeah_entry:
 
 @"__str_0" = internal constant [5 x i8] c"%i\0a\00\00"
 @"__str_1" = internal constant [5 x i8] c"%i\0a\00\00"
-@"__str_2" = internal constant [3 x i8] c"hi\00"
-@"__str_3" = internal constant [4 x i8] c"yes\00"

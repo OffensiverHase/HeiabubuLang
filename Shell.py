@@ -57,7 +57,7 @@ OUTPUT: str | None = None
 def run(text: str, file: str):
     file = file.split(os.sep)[-1]
     file, _ = os.path.splitext(file)
-    ctx = Context(None, '<main>', VarMap(), file, text)
+    ctx = Context(None, f'load_{file}', VarMap(), file, text)
     lexer = Lexer(ctx)
     tokens = lexer.make_tokens()
     if TOKENS_DEBUG:

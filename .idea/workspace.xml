@@ -5,17 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="bfe04db2-d8d8-4286-a2bd-6d3eaa2f1670" name="Changes" comment="better errors">
-      <change afterPath="$PROJECT_DIR$/lists.tss" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Env.py" beforeDir="false" afterPath="$PROJECT_DIR$/Env.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Error.py" beforeDir="false" afterPath="$PROJECT_DIR$/Error.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Context.py" beforeDir="false" afterPath="$PROJECT_DIR$/Context.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/IrBuilder.py" beforeDir="false" afterPath="$PROJECT_DIR$/IrBuilder.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Methods.py" beforeDir="false" afterPath="$PROJECT_DIR$/Methods.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Node.py" beforeDir="false" afterPath="$PROJECT_DIR$/Node.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Parser.py" beforeDir="false" afterPath="$PROJECT_DIR$/Parser.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/debug/main.json" beforeDir="false" afterPath="$PROJECT_DIR$/debug/main.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/debug/main.ll" beforeDir="false" afterPath="$PROJECT_DIR$/debug/main.ll" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/debug/main.tss" beforeDir="false" afterPath="$PROJECT_DIR$/debug/main.tss" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lists.tss" beforeDir="false" afterPath="$PROJECT_DIR$/lists.tss" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -429,7 +424,23 @@
       <option name="project" value="LOCAL" />
       <updated>1715863702356</updated>
     </task>
-    <option name="localTasksCounter" value="30" />
+    <task id="LOCAL-00030" summary="better errors">
+      <option name="closed" value="true" />
+      <created>1715877480396</created>
+      <option name="number" value="00030" />
+      <option name="presentableId" value="LOCAL-00030" />
+      <option name="project" value="LOCAL" />
+      <updated>1715877480396</updated>
+    </task>
+    <task id="LOCAL-00031" summary="better errors">
+      <option name="closed" value="true" />
+      <created>1715877488806</created>
+      <option name="number" value="00031" />
+      <option name="presentableId" value="LOCAL-00031" />
+      <option name="project" value="LOCAL" />
+      <updated>1715877488806</updated>
+    </task>
+    <option name="localTasksCounter" value="32" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -495,13 +506,8 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/IrBuilder.py</url>
-          <line>721</line>
+          <line>724</line>
           <option name="timeStamp" value="256" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/Methods.py</url>
-          <line>16</line>
-          <option name="timeStamp" value="279" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>

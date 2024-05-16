@@ -155,9 +155,9 @@ class IrBuilder:
         with self.allocator.set_block(block):
 
             prev_builder = self.builder
-            prev_env = self.env
             self.builder = ir.IRBuilder(block)
-            self.env = Environment(parent=prev_env)
+            self.env = Environment(parent=self.env, name=name)
+            self.context = Context(self.context, name, self.context.var_map, self.context.file, self.context.file_text)
 
             params_ptr: list[ir.AllocaInstr] = []
 
@@ -182,9 +182,10 @@ class IrBuilder:
             elif not self.builder.block.is_terminated:
                 self.err(InvalidSyntaxError, f'Missing return statement', node.identifier.pos)
 
-            self.env = prev_env
+            self.env = self.env.parent
             self.env.define(name, func, return_type)
             self.builder = prev_builder
+            self.context = self.context.parent
 
     def visitReturnNode(self, node: ReturnNode):
         value_node = node.value
@@ -345,21 +346,29 @@ class IrBuilder:
 
         if alternative is None:
             with self.builder.if_then(test):
+                self.env = Environment(parent=self.env, name='if_block_env')
                 self.visit(consequence)
+                self.env = self.env.parent
         else:
             with self.builder.if_else(test) as (true, otherwise):
                 with true:
+                    self.env = Environment(parent=self.env, name='if_block_env')
                     self.visit(consequence)
+                    self.env = self.env.parent
                 with otherwise:
+                    self.env = Environment(parent=self.env, name='if_block_env')
                     self.visit(alternative)
+                    self.env = self.env.parent
 
     def visitWhileNode(self, node: WhileNode):
         condition = node.bool
         body = node.expr
 
+        self.env = Environment(parent=self.env, name=f'while_loop_{self.increment_counter()}')
+
         test, Type = self.visit(condition)
 
-        consequence = self.builder.append_basic_block(f'while_loop_entry_{self.increment_counter()}')
+        consequence = self.builder.append_basic_block(f'while_loop_entry_{self.counter}')
         otherwise = self.builder.append_basic_block(f'while_loop_otherwise_{self.counter}')
 
         self.breaks.append(otherwise)
@@ -372,6 +381,8 @@ class IrBuilder:
         test, Type = self.visit(condition)
         self.builder.cbranch(test, consequence, otherwise)
         self.builder.position_at_start(otherwise)
+
+        self.env = self.env.parent
 
         self.breaks.pop()
         self.continues.pop()
@@ -408,8 +419,7 @@ class IrBuilder:
 
         self.builder.store(var_value, ptr)
         self.builder.branch(loop_cond_block)
-        prev_env = self.env
-        self.env = Environment(None, prev_env, f'for_loop_{self.counter}')
+        self.env = Environment(parent=self.env, name=f'for_loop_{self.counter}')
         self.env.define(var_name, ptr, var_type)
 
         self.builder.position_at_end(loop_cond_block)
@@ -437,7 +447,7 @@ class IrBuilder:
 
         self.builder.position_at_end(loop_exit_block)
 
-        self.env = prev_env
+        self.env = self.env.parent
 
     def visitStructDefNode(self, node: StructDefNode):
         name: str = node.identifier.value
@@ -501,12 +511,11 @@ class IrBuilder:
         parser = Parser(tokens, ctx)
         ast = parser.parse()
         if isinstance(ast, Error):
-            raise CaughtError(f'Error while importing file {file_path}', ast, node.pos, self.context, 'ir-building')
+            raise ast
 
-        try:
-            self.visit(ast)
-        except Error as e:
-            raise CaughtError(f'Error while importing file {file_path}', e, node.pos, self.context, 'ir-building')
+        self.context = ctx
+        self.visit(ast)
+        self.context = ctx.parent
 
         self.global_imports[file_path] = True
 

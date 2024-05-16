@@ -10,7 +10,7 @@ class Context:
         self.file_text = file_text
 
     def __str__(self):
-        return self.name if not self.parent else f'\n\t\t{self.name}\t\t:{self.file}{self.parent}'
+        return f'\n{self.file}:\t\t{self.name}' if not self.parent else f'\n{self.file}:\t\t{self.name}{self.parent}'
 
 
 class VarMap:

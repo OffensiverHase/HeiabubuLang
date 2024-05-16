@@ -2,6 +2,10 @@
   "type": "statement",
   "body": [
     {
+      "type": "import",
+      "file": "IDENTIFIER: lists"
+    },
+    {
       "type": "class_def",
       "fields": "{IDENTIFIER: x: TYPE: int}",
       "functions": [
@@ -97,23 +101,6 @@
           "identifier": "IDENTIFIER: obj"
         }
       ]
-    },
-    {
-      "type": "var_assign",
-      "identifier": "IDENTIFIER: x",
-      "type_annotation": "none",
-      "value": {
-        "type": "bin_op",
-        "left": {
-          "type": "str",
-          "value": "STRING: hi"
-        },
-        "operator": "PLUS",
-        "right": {
-          "type": "str",
-          "value": "STRING: yes"
-        }
-      }
     }
   ]
 }
