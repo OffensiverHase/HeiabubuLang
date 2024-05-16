@@ -157,7 +157,7 @@ class IrBuilder:
             prev_builder = self.builder
             self.builder = ir.IRBuilder(block)
             self.env = Environment(parent=self.env, name=name)
-            self.context = Context(self.context, name, self.context.var_map, self.context.file, self.context.file_text)
+            self.context = Context(self.context, name, self.context.file, self.context.file_text)
 
             params_ptr: list[ir.AllocaInstr] = []
 
@@ -505,7 +505,7 @@ class IrBuilder:
         with open(os.path.abspath(f'{file_path}.tss'), 'r') as f:  # todo
             file_code = f.read()
 
-        ctx = Context(self.context, f'import_{file_path}', self.context.var_map, file_path, file_code)
+        ctx = Context(self.context, f'import_{file_path}', file_path, file_code)
         lexer = Lexer(ctx)
         tokens = lexer.make_tokens()
         parser = Parser(tokens, ctx)

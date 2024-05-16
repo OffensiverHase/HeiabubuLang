@@ -215,7 +215,8 @@ class Parser:
                 return val
             return UnaryOpNode(operator, val)
 
-        left = self.bin_op_node([TT.EQUALS, TT.UNEQUALS, TT.LESS, TT.GREATER, TT.LESSEQUAL, TT.GREATEREQUAL], self.arithm_expr)
+        left = self.bin_op_node([TT.EQUALS, TT.UNEQUALS, TT.LESS, TT.GREATER, TT.LESSEQUAL, TT.GREATEREQUAL],
+                                self.arithm_expr)
         return left
 
     def op_expr(self) -> Node | Error:
@@ -269,6 +270,8 @@ class Parser:
                     if self.current_token.type != TT.IDENTIFIER:
                         return self.err(f'Expected identifier, got {self.current_token}')
                     identifier = self.current_token
+                    self.context = Context(self.context, identifier.value, self.context.file,
+                                           self.context.file_text)
                     self.advance()
                     if self.current_token.type != TT.LPAREN:
                         return self.err(f"Expected '(', got {self.current_token}")
@@ -349,6 +352,7 @@ class Parser:
                     body_node = self.body_expr()
                     if isinstance(body_node, Error):
                         return body_node
+                    self.context = self.context.parent
                     return FunDefNode(identifier, arg_list, arg_types, body_node, return_type)
                 case 'CLASS':
                     self.advance()
@@ -361,7 +365,7 @@ class Parser:
                     self.advance()
 
                     values: dict[Token, Token] = {}
-                    funcs:  list[Node] = []
+                    funcs: list[Node] = []
 
                     self.ignore_newlines()
                     while self.current_token.type != TT.RCURLY:

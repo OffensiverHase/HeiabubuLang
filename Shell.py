@@ -7,7 +7,7 @@ from ctypes import CFUNCTYPE, c_int
 import llvmlite.binding as llvm
 import llvmlite.ir
 
-from Context import Context, VarMap
+from Context import Context
 from Error import Error
 from IrBuilder import IrBuilder
 from Lexer import Lexer
@@ -57,7 +57,7 @@ OUTPUT: str | None = None
 def run(text: str, file: str):
     file = file.split(os.sep)[-1]
     file, _ = os.path.splitext(file)
-    ctx = Context(None, f'load_{file}', VarMap(), file, text)
+    ctx = Context(None, f'load_{file}', file, text)
     lexer = Lexer(ctx)
     tokens = lexer.make_tokens()
     if TOKENS_DEBUG:
