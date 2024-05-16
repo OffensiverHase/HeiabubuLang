@@ -48,6 +48,10 @@
                       {
                         "type": "var_access",
                         "identifier": "IDENTIFIER: self"
+                      },
+                      {
+                        "type": "number",
+                        "number": "INT: 1"
                       }
                     ]
                   }

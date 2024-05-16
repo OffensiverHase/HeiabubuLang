@@ -544,6 +544,7 @@ class IrBuilder:
             args.append(p_val)
             types.append(p_type)
 
+
         match name:
             case 'print':
                 if len(types) <= 0:
@@ -555,6 +556,13 @@ class IrBuilder:
                 func, ret_type = self.env.lookup(name)
                 if not func:
                     self.err(NoSuchVarError, f'No function called {name}', node.identifier.pos)
+
+                expected_len = len(func.args)
+                real_len = len(params)
+                if real_len != expected_len:
+                    self.err(InvalidSyntaxError, f'Expected {expected_len} parameters, got {real_len}',
+                             node.identifier.pos)
+
                 ret = self.builder.call(func, args, name=f'{name}.ret')
         return ret, ret_type
 

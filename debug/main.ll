@@ -25,6 +25,9 @@ load_main_entry:
   store %"A"* %"A", %"A"** %"obj"
   %"obj.1" = load %"A"*, %"A"** %"obj"
   call void @"hell_yeah"(%"A"* %"obj.1")
+  %"nop" = add i32 0, 0
+  %"obj.2" = load %"A"*, %"A"** %"obj"
+  call void @"hell_yeah"(%"A"* %"obj.2")
   ret i32 0
 }
 
