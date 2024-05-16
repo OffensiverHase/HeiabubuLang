@@ -9,8 +9,7 @@ def fail(error: Error):
     print_err(''
               f'Encountered error in stage {error.stage}\n'
               f'{error}\n'
-              f'Context: {error.context} ', sep='\n')
-    print_err(f'\nsrc --> {error.context.file}\n')
+              f'Context: {error.context} \n', sep='\n')
     arrow_str(error.pos, error.context)
 
 

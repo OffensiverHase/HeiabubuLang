@@ -384,7 +384,7 @@ class Parser:
                             if self.current_token.type != TT.NEWLINE:
                                 return self.err(f"Expected ';' or newline, got {self.current_token}")
                             self.ignore_newlines()
-                        else:
+                        elif self.current_token.type == TT.KEYWORD and self.current_token.value == 'FUN':
                             fun: FunDefNode = self.expression()
                             if isinstance(fun, Error):
                                 return fun
@@ -392,25 +392,31 @@ class Parser:
                             fun.arg_types.insert(0, Token(TT.TYPE, name.value, self.current_token.pos))
                             funcs.append(fun)
                             self.ignore_newlines()
+                        else:
+                            return self.err(f'WTF??? Line 396 Parser.py')  # Can't be since check in line 371
                     self.advance()
                     return StructDefNode(name, values, funcs)
                 case 'PASS':
+                    pos = self.current_token.pos
                     self.advance()
-                    return PassNode()
+                    return PassNode(pos)
                 case 'RETURN':
+                    pos = self.current_token.pos
                     self.advance()
                     if self.current_token.type == TT.NEWLINE or self.current_token.type == TT.EOF:
-                        return ReturnNode(None)
+                        return ReturnNode(None, pos)
                     val = self.op_expr()
                     if isinstance(val, Error):
                         return val
-                    return ReturnNode(val)
+                    return ReturnNode(val, pos)
                 case 'BREAK':
+                    pos = self.current_token.pos
                     self.advance()
-                    return BreakNode()
+                    return BreakNode(pos)
                 case 'CONTINUE':
+                    pos = self.current_token.pos
                     self.advance()
-                    return ContinueNode()
+                    return ContinueNode(pos)
                 case 'IMPORT':
                     self.advance()
                     if self.current_token.type != TT.IDENTIFIER:

@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import os.path
+from typing import NoReturn
 
 from llvmlite import ir
 from llvmlite.ir import CompareInstr, GlobalVariable
+from llvmlite.ir._utils import DuplicatedNameError
 
 from Env import Environment
 from Error import *
@@ -22,7 +24,7 @@ class IrBuilder:
         self.float_type = ir.DoubleType()
         self.bool_type = ir.IntType(1)
         self.byte_type = ir.IntType(8)
-        self.str_type = ir.PointerType(self.byte_type)
+        self.str_type = self.byte_type.as_pointer()
         self.null_type = ir.VoidType()
 
         self.counter = -1
@@ -45,10 +47,10 @@ class IrBuilder:
 
         self.init_builtins()
 
-    def get_type(self, name: str) -> ir.Type:
+    def get_type(self, name: str, pos: Position) -> ir.Type:
         if name.startswith('list'):
             list_type = name.removeprefix('list:')
-            list_type = self.get_type(list_type)
+            list_type = self.get_type(list_type, pos)
             return list_type.as_pointer()
         else:
             Type: ir.Type | None = None
@@ -58,7 +60,7 @@ class IrBuilder:
                 if name in self.module.get_identified_types().keys():
                     Type = self.module.context.get_identified_type(name)
                 else:
-                    print_err(f'No type called {name}')
+                    self.err(TypeError, f'No type called {name}', pos)
             return Type
 
     def increment_counter(self) -> int:
@@ -81,7 +83,7 @@ class IrBuilder:
             funty: ir.FunctionType = ir.FunctionType(self.int_type, [self.str_type], var_arg=True)
             return ir.Function(self.module, funty, 'printf')
 
-        def __init_c_std_library() -> None:
+        def init_c_std_library() -> None:
             strlen_ty = ir.FunctionType(self.int_type, [ir.IntType(8).as_pointer()], var_arg=False)
             strlen_func = ir.Function(self.module, strlen_ty, name="strlen")
 
@@ -100,7 +102,7 @@ class IrBuilder:
         self.env.define('true', true, true.type)
         self.env.define('false', false, false.type)
 
-        __init_c_std_library()
+        init_c_std_library()
 
     def build(self, node: Node):
         fnty = ir.FunctionType(self.int_type, [])
@@ -122,7 +124,7 @@ class IrBuilder:
 
     def visitNumberNode(self, node: NumberNode) -> tuple[ir.Value, ir.Type]:
         Type = self.int_type if node.token.type == TT.INT else self.float_type
-        return ir.Constant(Type, node.token.value), Type
+        return Type(node.token.value), Type
 
     def visitStatementNode(self, node: StatementNode):
         for expr in node.expressions:
@@ -134,16 +136,20 @@ class IrBuilder:
         param_names: list[str] = [p.value for p in node.args]
         param_types: list[ir.Type] = []
         for t in node.arg_types:
-            Type = self.get_type(t.value)
+            Type = self.get_type(t.value, t.pos)
             if isinstance(Type, ir.BaseStructType):
                 Type = Type.as_pointer()
             param_types.append(Type)
-        return_type = self.get_type(node.return_type.value)
+        return_type = self.get_type(node.return_type.value, node.return_type.pos)
         if return_type.__class__ in [ir.IdentifiedStructType, ir.LiteralStructType]:
             return_type = return_type.as_pointer()
 
         fun_type = ir.FunctionType(return_type, param_types)
-        func = ir.Function(self.module, fun_type, name)
+
+        try:
+            func = ir.Function(self.module, fun_type, name)
+        except DuplicatedNameError as e:
+            self.err(DuplicateNameError, f'the name {name} is defined multiple times!', node.identifier.pos)
         block = func.append_basic_block(f'{name}_entry')
 
         with self.allocator.set_block(block):
@@ -173,6 +179,8 @@ class IrBuilder:
             self.visit(body)
             if return_type == self.null_type and not self.builder.block.is_terminated:
                 self.builder.ret_void()
+            elif not self.builder.block.is_terminated:
+                self.err(InvalidSyntaxError, f'Missing return statement', node.identifier.pos)
 
             self.env = prev_env
             self.env.define(name, func, return_type)
@@ -185,7 +193,7 @@ class IrBuilder:
             self.builder.ret_void()
             return
 
-        value, Type = self.resolve(value_node)
+        value, Type = self.visit(value_node)
 
         if self.is_str(Type):
             ptr_to_array = self.builder.gep(value,
@@ -206,12 +214,12 @@ class IrBuilder:
             lst = ir.Constant(ir.ArrayType(self.int_type, 0), [])
             return lst, lst.type
 
-        _, list_type = self.resolve(values[0])
+        _, list_type = self.visit(values[0])
         resolved_values: list[ir.Value] = []
         for v in values:
             value, Type = self.visit(v)
             if Type != list_type:
-                print_err(f'Expected {list_type}, got {Type}')
+                self.err(TypeError, f'Expected {list_type} type, got {Type}', v.pos)
             resolved_values.append(value)
 
         list_ptr = self.allocator.alloca(ir.ArrayType(list_type, len(values)), name='list_ptr')
@@ -234,14 +242,15 @@ class IrBuilder:
     def visitVarAssignNode(self, node: VarAssignNode):
         name: str = node.name.value
         value_node = node.value
-        value_type = self.get_type(node.type.value) if node.type else None
+        value_type = self.get_type(node.type.value, node.type.pos) if node.type else None
 
-        value, Type = self.resolve(value_node)
+        value, Type = self.visit(value_node)
 
-        if value_type != Type and value_type is not None and (value_type != Type.pointee) if Type.is_pointer else True:
-            print_err(f'Type Error: expected {value_type}, got {Type}')
+        if value_type != Type and value_type is not None and (
+                (value_type != Type.pointee) if Type.is_pointer else True):
+            self.err(TypeError, f'Expected {value_type}, ot {Type}', node.value.pos)
 
-        if self.env.lookup(name) is None:
+        if self.env.lookup(name) == (None, None):
 
             ptr = self.allocator.alloca(Type, name=name)
             self.builder._anchor += 1
@@ -251,22 +260,21 @@ class IrBuilder:
         else:
             ptr, Type2 = self.env.lookup(name)
             if value_type != Type2 and value_type is not None:
-                print_err(f'Type Error: expected {value_type}, got {Type2}')
+                self.err(TypeError, f'Expected {value_type}, got {Type2}', node.name.pos)
             if Type != Type2:
-                print_err(f'Type Error: expected {Type2}, got {Type}')
+                self.err(TypeError, f'Expected {Type2}, got {Type}', node.name.pos)
             self.builder.store(value, ptr)
 
     def visitVarAccessNode(self, node: VarAccessNode) -> tuple[ir.Value, ir.Type]:
-        if node.name.value in ['true', 'false']:
-            return ir.Constant(self.bool_type, 1 if node.name.value == 'true' else 0), self.bool_type
-        # todo errors
         ptr, Type = self.env.lookup(node.name.value)
+        if not ptr:  # value is not found
+            self.err(NoSuchVarError, f'No variable or function called {node.name.value}', node.pos)
         return self.builder.load(ptr, name=node.name.value), Type
 
     def visitBinOpNode(self, node: BinOpNode) -> tuple[ir.Value, ir.Type]:
         operator = node.operator
-        left_value, left_type = self.resolve(node.left)
-        right_value, right_type = self.resolve(node.right)
+        left_value, left_type = self.visit(node.left)
+        right_value, right_type = self.visit(node.right)
         value = None
         Type = None
         if right_type == self.int_type and left_type == self.int_type:
@@ -292,14 +300,16 @@ class IrBuilder:
 
         elif right_type == self.int_type and self.is_str(left_type):
             value, Type = self.str_int_bin_op(left_value, right_value, operator)
+
         else:
-            print_err(f'Cannot find operation {operator} on {left_type} and {right_type}')
+            self.err(UnknownNodeError, f'Cannot find operation {operator} on {left_type} and {right_type}',
+                     operator.pos)
 
         return value, Type
 
     def visitUnaryOpNode(self, node: UnaryOpNode) -> tuple[ir.Value, ir.Type]:
         operator = node.operator
-        node_value, node_Type = self.resolve(node.node)
+        node_value, node_Type = self.visit(node.node)
         value = None
         Type = node_Type
         if operator.type == TT.PLUS:
@@ -308,6 +318,8 @@ class IrBuilder:
             value = self.builder.neg(node_value)
         elif operator.type == TT.NOT:
             value = self.builder.not_(node_value)
+        else:
+            self.err(UnknownNodeError, f'Cannot find operation {operator} on {node_Type}', operator.pos)
         return value, Type
 
     def visitStringNode(self, node: StringNode) -> tuple[ir.Value, ir.Type]:
@@ -329,7 +341,7 @@ class IrBuilder:
         consequence = node.expr
         alternative = node.else_expr
 
-        test, Type = self.resolve(condition)
+        test, Type = self.visit(condition)
 
         if alternative is None:
             with self.builder.if_then(test):
@@ -345,7 +357,7 @@ class IrBuilder:
         condition = node.bool
         body = node.expr
 
-        test, Type = self.resolve(condition)
+        test, Type = self.visit(condition)
 
         consequence = self.builder.append_basic_block(f'while_loop_entry_{self.increment_counter()}')
         otherwise = self.builder.append_basic_block(f'while_loop_otherwise_{self.counter}')
@@ -357,7 +369,7 @@ class IrBuilder:
 
         self.builder.position_at_start(consequence)
         self.visit(body)
-        test, Type = self.resolve(condition)
+        test, Type = self.visit(condition)
         self.builder.cbranch(test, consequence, otherwise)
         self.builder.position_at_start(otherwise)
 
@@ -366,23 +378,25 @@ class IrBuilder:
 
     def visitBreakNode(self, node: BreakNode):
         if len(self.breaks) == 0:
-            print_err(f'break outside of while or for!')
+            self.err(InvalidSyntaxError, f'break outside of loop!', node.pos)
         self.builder.branch(self.breaks[-1])
 
     def visitContinueNode(self, node: ContinueNode):
         if len(self.continues) == 0:
-            print_err(f'break outside of while of for!')
+            self.err(InvalidSyntaxError, f'continue outside of loop!', node.pos)
         self.builder.branch(self.continues[-1])
 
     def visitForNode(self, node: ForNode):
         var_name = node.identifier.value
-        var_value, var_type = self.resolve(node.from_node)
-        step_value, step_type = self.resolve(node.step)
+        var_value, var_type = self.visit(node.from_node)
+        step_value, step_type = self.visit(node.step)
         body: Node = node.expr
-        to_value, to_type = self.resolve(node.to)
+        to_value, to_type = self.visit(node.to)
 
         if var_type != step_type != to_type:
-            print_err('For loop variable, step and to types have to match!')
+            self.err(TypeError,
+                     f'For loop variable ({var_type}), step ({step_type}) and to ({to_type}) types have to match!',
+                     node.identifier.pos)
 
         loop_cond_block = self.builder.append_basic_block(f'loop_cond_{self.increment_counter()}')
         loop_body_block = self.builder.append_basic_block(f'loop_body_{self.counter}')
@@ -406,7 +420,8 @@ class IrBuilder:
         elif var_type == self.float_type:
             cond = self.builder.fcmp_ordered('<', loop_var_value, to_value, name='loop_cond')
         else:
-            print_err(f'Unknown types for for loop, got {var_type}, expected int, float, or byte')
+            self.err(TypeError, f'Unknown types for for loop, got {var_type}, expected int, float, or byte',
+                     node.identifier.pos)
         self.builder.cbranch(cond, loop_body_block, loop_exit_block)
 
         self.builder.position_at_end(loop_body_block)
@@ -429,32 +444,42 @@ class IrBuilder:
         funcs = node.functions
         idents = [ident.value for ident in node.values.keys()]
         types = [typ.value for typ in node.values.values()]
+
+        if self.structs.get(name):
+            self.err(DuplicateNameError, f'Class type {name} is already defined', node.identifier.pos)
+
         self.structs[name] = Struct(name, idents)
 
         struct_type = self.module.context.get_identified_type(name)
-        struct_type.set_body(*[self.get_type(typ) for typ in types])
+        struct_type.set_body(*[self.get_type(typ, list(node.values.values())[i].pos) for i, typ in enumerate(types)])
 
         for fun in funcs:
             self.visit(fun)
 
     def visitStructAssignNode(self, node: StructAssignNode):
-        struct, struct_type = self.resolve(node.obj)
+        struct, struct_type = self.visit(node.obj)
         key: str = node.key.value
-        value, value_type = self.resolve(node.value)
+        value, value_type = self.visit(node.value)
         struct_obj = self.structs[struct_type.pointee.name if struct_type.is_pointer else struct_type.name]
-        index = struct_obj.field_indices[key]  # todo
+
+        index = struct_obj.field_indices.get(key)
+        if index is None:
+            self.err(IndexError, f'Object from class {struct_obj.name} has no attr called {key}', node.key.pos)
 
         ptr = self.builder.gep(struct, [self.int_type(0), self.int_type(index)], name=f'{struct_obj.name}.{key}_ptr')
         self.builder.store(value, ptr)
 
     def visitStructReadNode(self, node: StructReadNode) -> tuple[ir.Value, ir.Type]:
-        struct, struct_type = self.resolve(node.obj)
+        struct, struct_type = self.visit(node.obj)
         key: str = node.key.value
         struct_obj = self.structs[struct_type.pointee.name if struct_type.is_pointer else struct_type.name]
-        index = struct_obj.field_indices[key]  # todo
+
+        index = struct_obj.field_indices.get(key)
+        if index is None:
+            self.err(IndexError, f'Object from class {struct_obj.name} has no attr called {key}', node.key.pos)
 
         if not struct_type.is_pointer:
-            pass
+            pass  # todo when is this the case?
 
         ptr = self.builder.gep(struct, [self.int_type(0), self.int_type(index)] if struct_type.is_pointer else [
             self.int_type(index)], name=f'{struct_obj.name}.{key}_ptr')
@@ -467,7 +492,7 @@ class IrBuilder:
             print_err(f'Already imported {file_path} globally!')
             return
 
-        with open(os.path.abspath(file_path), 'r') as f:
+        with open(os.path.abspath(f'{file_path}.tss'), 'r') as f:  # todo
             file_code = f.read()
 
         ctx = Context(self.context, f'import_{file_path}', self.context.var_map, file_path, file_code)
@@ -476,9 +501,12 @@ class IrBuilder:
         parser = Parser(tokens, ctx)
         ast = parser.parse()
         if isinstance(ast, Error):
-            print_err(f'Error while importing file {file_path}: {ast}')
+            raise CaughtError(f'Error while importing file {file_path}', ast, node.pos, self.context, 'ir-building')
 
-        self.visit(ast)
+        try:
+            self.visit(ast)
+        except Error as e:
+            raise CaughtError(f'Error while importing file {file_path}', e, node.pos, self.context, 'ir-building')
 
         self.global_imports[file_path] = True
 
@@ -493,7 +521,7 @@ class IrBuilder:
         types: list[ir.Type] = []
 
         for i, p in enumerate(params):
-            p_val, p_type = self.resolve(p)
+            p_val, p_type = self.visit(p)
             if isinstance(p_type, ir.BaseStructType):
                 ptr = self.allocator.alloca(p_type, name=f'{node.identifier.value}.arg{i}')
                 self.builder._anchor += 1
@@ -510,11 +538,14 @@ class IrBuilder:
         match name:
             case 'print':
                 if len(types) <= 0:
-                    print_err("printf cannot be called without a argument, use `printf('\n')`")
+                    self.err(InvalidSyntaxError, "printf cannot be called without a argument, use `printf('\\n')`",
+                             node.identifier.pos)
                 ret = self.printf(params=args, return_type=types[0])
                 ret_type = self.int_type
             case _:
                 func, ret_type = self.env.lookup(name)
+                if not func:
+                    self.err(NoSuchVarError, f'No function called {name}', node.identifier.pos)
                 ret = self.builder.call(func, args, name=f'{name}.ret')
         return ret, ret_type
 
@@ -525,14 +556,18 @@ class IrBuilder:
         args: list[ir.Value] = []
         types: list[ir.Type] = []
 
-        if len(params) > 0:
-            for p in params:
-                p_val, p_type = self.resolve(p)
-                args.append(p_val)
-                types.append(p_type)
+        for p in params:
+            p_val, p_type = self.visit(p)
+            args.append(p_val)
+            types.append(p_type)
 
         struct_type = self.module.context.get_identified_type(name)
         struct_obj = self.structs[name]
+
+        expected_len = len(struct_obj.field_indices)
+        real_len = len(params)
+        if real_len != expected_len:
+            self.err(InvalidSyntaxError, f'Expected {expected_len} parameters, got {real_len}', node.identifier.pos)
 
         struct_ptr = self.allocator.alloca(struct_type, name=name)
         self.builder._anchor += 1
@@ -552,40 +587,8 @@ class IrBuilder:
         self.builder.add(self.int_type(0), self.int_type(0), 'nop')
 
     def visit_unknown_node(self, node: Node):
-        err = UnknownNodeError(f'Found unknown node: {node.__class__.__name__}!', 'Unknown Position', self.context,
-                               'compiling')
-        raise err
-
-    def resolve(self, node: Node, value_type: str | None = None) -> tuple[ir.Value, ir.Type]:
-        match node:
-            case NumberNode():
-                node: NumberNode = node
-                value, Type = node.token.value, (
-                    self.int_type if node.token.type == TT.INT else self.float_type) if value_type is None else value_type
-                return ir.Constant(Type, value), Type
-            case BinOpNode():
-                node: BinOpNode = node
-                return self.visitBinOpNode(node)
-            case UnaryOpNode():
-                node: UnaryOpNode = node
-                return self.visitUnaryOpNode(node)
-            case VarAccessNode():
-                node: VarAccessNode = node
-                return self.visitVarAccessNode(node)
-            case FunCallNode():
-                node: FunCallNode = node
-                return self.visitFunCallNode(node)
-            case StringNode():
-                node: StringNode = node
-                return self.visitStringNode(node)
-            case ListNode():
-                node: ListNode = node
-                return self.visitListNode(node)
-            case StructReadNode():
-                node: StructReadNode = node
-                return self.visitStructReadNode(node)
-            case _:
-                print_err(f'Tried to resolve unknown node: {node.__class__.__name__}: {node}')
+        self.err(UnknownNodeError, f'Tried to resolve unknown node: {node.__class__.__name__}!\nnode json:\n{node}\n',
+                 node.pos)
 
     def int_bin_op(self, left_value: ir.Value, right_value: ir.Value, operator: Token) -> tuple[ir.Value, ir.Type]:
         Type = self.int_type
@@ -603,6 +606,7 @@ class IrBuilder:
                 value = self.builder.srem(left_value, right_value, name='mod')
             case TT.POW:
                 pass  # todo value = self.builder.call(self.powi, [left_value, right_value], name='powi.ret')
+                self.err(RuntimeError, 'calling pow on int and int is not implemented yet!', operator.pos)
             case TT.LESS:
                 value = self.builder.icmp_signed('<', left_value, right_value, name='less')
                 Type = self.bool_type
@@ -626,11 +630,11 @@ class IrBuilder:
             case TT.XOR:
                 value = self.builder.xor(left_value, right_value, name='xor')
             case _:
-                print_err(f'unknown operation {operator} on int and int!')  # todo
+                self.err(InvalidSyntaxError, f'unknown operation {operator} on int and int', operator.pos)
         return value, Type
 
     def float_bin_op(self, left_value: ir.Value, right_value: ir.Value, convert_left: bool, operator: Token) -> tuple[
-        ir.Value, ir.Type]:
+            ir.Value, ir.Type]:
         Type = self.float_type
         value = None
         if convert_left:
@@ -670,7 +674,7 @@ class IrBuilder:
                 value = self.builder.fcmp_ordered('!=', left_value, right_value, name='unequal')
                 Type = self.bool_type
             case _:
-                print_err(f'unknown operation {operator} on float and float!')  # todo
+                self.err(InvalidSyntaxError, f'unknown operation {operator} on float and float', operator.pos)
         return value, Type
 
     def bool_bin_op(self, left_value: ir.Value, right_value: ir.Value, operator: Token) -> tuple[ir.Value, ir.Type]:
@@ -688,7 +692,7 @@ class IrBuilder:
             case TT.UNEQUALS:
                 value = self.builder.icmp_unsigned(left_value, '!=', right_value, name='unequal')
             case _:
-                print_err(f'unknown operation {operator} on bool and bool!')  # todo
+                self.err(InvalidSyntaxError, f'unknown operation {operator} on bool and bool', operator.pos)
         return value, Type
 
     def list_int_bin_op(self, left_value: ir.Value, right_value: ir.Value, operator: Token, bitcast: bool) -> tuple[
@@ -698,11 +702,11 @@ class IrBuilder:
             case TT.GET:
                 if bitcast:
                     left_value = self.builder.bitcast(left_value, self.int_type.as_pointer(), 'list_to_ptr')
-                ptr = self.builder.gep(left_value, [right_value], name='list_element_ptr')  # todo
+                ptr = self.builder.gep(left_value, [right_value], name='list_element_ptr')  # todo why is here a todo?
                 value = self.builder.load(ptr, name=f'list_element')
                 Type = value.type
             case _:
-                print_err(f'unḱnown operation {operator} on list and int')
+                self.err(InvalidSyntaxError, f'unknown operation {operator} on list and int', operator.pos)
         return value, Type
 
     def list_bin_op(self, left_value: ir.Value, right_value: ir.Value, operator: Token) -> tuple[ir.Value, ir.Type]:
@@ -714,7 +718,8 @@ class IrBuilder:
                 list_ptr2 = self.builder.gep(right_value,
                                              [self.int_type(0)] if isinstance(left_value.type, ir.ArrayType) else [
                                                  self.int_type(0), self.int_type(0)], name="list_ptr2")
-                len1 = self.builder.call()  # todo concat lists!
+                self.err(RuntimeError, 'Adding two lists is not implemented yet', operator.pos)
+                # len1 = self.builder.call()  # todo concat lists!
 
     def str_bin_op(self, left_value: ir.Value, right_value: ir.Value, operator: Token) -> tuple[ir.Value, ir.Type]:
         value, Type = None, None
@@ -734,14 +739,14 @@ class IrBuilder:
                 concat_ptr = self.builder.call(self.module.globals.get("malloc"), [total_length], name="concat_ptr")
 
                 # Copy the first string (left_value) into the allocated memory
-                self.builder.call(self.builder.function.module.globals.get("strcpy"), [concat_ptr, str_ptr1],
+                self.builder.call(self.module.globals.get("strcpy"), [concat_ptr, str_ptr1],
                                   name="copy_ptr1")
 
                 # Calculate the offset for appending the second string (right_value)
                 offset_ptr2 = self.builder.gep(concat_ptr, [len1], name="offset_ptr2")
 
                 # Copy the second string (right_value) into the allocated memory at the offset position
-                self.builder.call(self.builder.function.module.globals.get("strcpy"), [offset_ptr2, str_ptr2],
+                self.builder.call(self.module.globals.get("strcpy"), [offset_ptr2, str_ptr2],
                                   name="copy_ptr1")
 
                 value = concat_ptr
@@ -749,7 +754,7 @@ class IrBuilder:
                 Type = value.type
 
             case _:
-                print_err(f'No such operation on string and string: {operator}')
+                self.err(InvalidSyntaxError, f'unknown operation {operator} on str and str', operator.pos)
 
         return value, Type
 
@@ -770,7 +775,7 @@ class IrBuilder:
                 value = arr_ptr
                 Type = arr_ptr.type
             case _:
-                print_err(f'No such operation on string and int: {operator}')
+                self.err(InvalidSyntaxError, f'unknown operation {operator} on str and int', operator.pos)
         return value, Type
 
     def printf(self, params: list[ir.Value], return_type: ir.Type) -> ir.CallInstr:
@@ -816,6 +821,11 @@ class IrBuilder:
         if typ.is_pointer:
             return True  # fixme (can't be right, but how then?)
         return False
+
+    def err(self, err_class: Error.__class__, message: str, pos: Position) -> NoReturn:
+        err = err_class(message, pos, self.context, 'ir-building')
+        assert isinstance(err, Error), 'Error has to be a instance of self defined Error to be excepted'
+        raise err
 
 
 class Struct:

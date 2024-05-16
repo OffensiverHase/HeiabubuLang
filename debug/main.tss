@@ -9,7 +9,6 @@ class A {
         print('%i\n', self.x)
     }
 }
-fun main() {
-    obj <- A(420)
-    obj.hell_yeah()
-}
+
+obj <- A(420)
+obj.hell_yeah()

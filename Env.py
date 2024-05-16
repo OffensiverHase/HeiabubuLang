@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from llvmlite import ir
 
+from Error import NoSuchVarError
+
 
 class Environment:
     def __init__(self, records: dict[str, tuple[ir.Value, ir.Type]] | None = None, parent: Environment | None = None,
@@ -15,7 +17,10 @@ class Environment:
         return value
 
     def lookup(self, name: str) -> tuple[ir.Value, ir.Type]:
-        return self.__resolve(name)
+        value = self.__resolve(name)
+        if not value:
+            return None, None
+        return value
 
     def __resolve(self, name: str) -> tuple[ir.Value, ir.Type] | None:
         if name in self.records:

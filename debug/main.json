@@ -74,40 +74,46 @@
       ]
     },
     {
-      "type": "fun_def",
-      "identifier": "IDENTIFIER: main",
-      "params": {},
-      "fun_body": {
-        "type": "statement",
-        "body": [
+      "type": "var_assign",
+      "identifier": "IDENTIFIER: obj",
+      "type_annotation": "none",
+      "value": {
+        "type": "fun_call",
+        "identifier": "IDENTIFIER: A",
+        "args": [
           {
-            "type": "var_assign",
-            "identifier": "IDENTIFIER: obj",
-            "type_annotation": "none",
-            "value": {
-              "type": "fun_call",
-              "identifier": "IDENTIFIER: A",
-              "args": [
-                {
-                  "type": "number",
-                  "number": "INT: 420"
-                }
-              ]
-            }
-          },
-          {
-            "type": "fun_call",
-            "identifier": "IDENTIFIER: hell_yeah",
-            "args": [
-              {
-                "type": "var_access",
-                "identifier": "IDENTIFIER: obj"
-              }
-            ]
+            "type": "number",
+            "number": "INT: 420"
           }
         ]
-      },
-      "ret_type": "TYPE: null"
+      }
+    },
+    {
+      "type": "fun_call",
+      "identifier": "IDENTIFIER: hell_yeah",
+      "args": [
+        {
+          "type": "var_access",
+          "identifier": "IDENTIFIER: obj"
+        }
+      ]
+    },
+    {
+      "type": "var_assign",
+      "identifier": "IDENTIFIER: x",
+      "type_annotation": "none",
+      "value": {
+        "type": "bin_op",
+        "left": {
+          "type": "str",
+          "value": "STRING: hi"
+        },
+        "operator": "PLUS",
+        "right": {
+          "type": "str",
+          "value": "STRING: yes"
+        }
+      }
     }
   ]
 }

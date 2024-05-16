@@ -1,12 +1,16 @@
 import json
 from typing import List
 
-from Token import Token, TT
+from Token import Token, TT, Position
 
 
 class Node:
     def __repr__(self):
         return json.dumps(self.json(), indent=2)
+
+    @property
+    def pos(self) -> Position:
+        pass
 
     def json(self) -> dict:
         pass
@@ -15,6 +19,10 @@ class Node:
 class NumberNode(Node):
     def __init__(self, number: Token):
         self.token = number
+
+    @property
+    def pos(self) -> Position:
+        return self.token.pos
 
     def json(self) -> dict:
         return {'type': 'number', 'number': self.token.__str__()}
@@ -26,14 +34,23 @@ class BinOpNode(Node):
         self.operator = operator
         self.right = right
 
+    @property
+    def pos(self) -> Position:
+        return self.left.pos
+
     def json(self) -> dict:
-        return {'type': 'bin_op', 'left': self.left.json(), 'operator': self.operator.__str__(), 'right': self.right.json()}
+        return {'type': 'bin_op', 'left': self.left.json(), 'operator': self.operator.__str__(),
+                'right': self.right.json()}
 
 
 class UnaryOpNode(Node):
     def __init__(self, operator: Token, node: Node):
         self.operator = operator
         self.node = node
+
+    @property
+    def pos(self) -> Position:
+        return self.operator.pos
 
     def json(self) -> dict:
         return {'type': 'unary_op', 'operator': self.operator.__str__(), 'right': self.node.json()}
@@ -42,6 +59,10 @@ class UnaryOpNode(Node):
 class VarAccessNode(Node):
     def __init__(self, name: Token):
         self.name = name
+
+    @property
+    def pos(self) -> Position:
+        return self.name.pos
 
     def json(self) -> dict:
         return {'type': 'var_access', 'identifier': self.name.__str__()}
@@ -53,9 +74,13 @@ class VarAssignNode(Node):
         self.type = type_token
         self.value = value
 
+    @property
+    def pos(self) -> Position:
+        return self.name.pos
+
     def json(self) -> dict:
-        return {'type': 'var_assign', 'identifier': self.name.__str__(), 'type_annotation': self.type.__str__() if self.type else 'none',
-                'value': self.value.json()}
+        return {'type': 'var_assign', 'identifier': self.name.__str__(),
+                'type_annotation': self.type.__str__() if self.type else 'none', 'value': self.value.json()}
 
 
 class IfNode(Node):
@@ -63,6 +88,10 @@ class IfNode(Node):
         self.bool = bool_node
         self.expr = expr
         self.else_expr = else_expr
+
+    @property
+    def pos(self) -> Position:
+        return self.bool.pos
 
     def json(self) -> dict:
         return {'type': 'if', 'if': self.bool.json(), 'then': self.expr.json(),
@@ -73,6 +102,10 @@ class WhileNode(Node):
     def __init__(self, bool_node: Node, expr: Node):
         self.bool = bool_node
         self.expr = expr
+
+    @property
+    def pos(self) -> Position:
+        return self.bool.pos
 
     def json(self) -> dict:
         return {'type': 'while', 'while': self.bool.json(), 'then': self.expr.json()}
@@ -86,15 +119,24 @@ class ForNode(Node):
         self.step = step if step else NumberNode(Token(TT.INT, 1, identifier.pos))
         self.expr = expr
 
+    @property
+    def pos(self) -> Position:
+        return self.identifier.pos
+
     def json(self) -> dict:
-        return {'type': 'for', 'var_name': self.identifier.__str__(), 'from': self.from_node.json(), 'to': self.to.json(),
-                'step': self.step.json() if self.step.__str__() else 'none', 'then': self.expr.json()}
+        return {'type': 'for', 'var_name': self.identifier.__str__(), 'from': self.from_node.json(),
+                'to': self.to.json(), 'step': self.step.json() if self.step.__str__() else 'none',
+                'then': self.expr.json()}
 
 
 class FunCallNode(Node):
     def __init__(self, identifier: Token, args: List[Node]):
         self.identifier = identifier
         self.args = args
+
+    @property
+    def pos(self) -> Position:
+        return self.identifier.pos
 
     def json(self) -> dict:
         args = [a.json() for a in self.args]
@@ -109,17 +151,25 @@ class FunDefNode(Node):
         self.body = body
         self.return_type = return_type
 
+    @property
+    def pos(self) -> Position:
+        return self.identifier.pos
+
     def json(self) -> dict:
         args = [a.__str__() for a in self.args]
         arg_types = [at.__str__() for at in self.arg_types]
         params = dict(zip(args, arg_types))
-        return {'type': 'fun_def', 'identifier': self.identifier.__str__(), 'params': params, 'fun_body': self.body.json(),
-                'ret_type': self.return_type.__str__()}
+        return {'type': 'fun_def', 'identifier': self.identifier.__str__(), 'params': params,
+                'fun_body': self.body.json(), 'ret_type': self.return_type.__str__()}
 
 
 class StringNode(Node):
     def __init__(self, value: Token):
         self.value = value
+
+    @property
+    def pos(self) -> Position:
+        return self.value.pos
 
     def json(self) -> dict:
         return {'type': 'str', 'value': self.value.__str__()}
@@ -129,6 +179,10 @@ class ListNode(Node):
     def __init__(self, content: List[Node]):
         self.content = content
 
+    @property
+    def pos(self) -> Position:
+        return self.content[1].pos
+
     def json(self) -> dict:
         exprs = [e.json() for e in self.content]
         return {'type': 'list', 'content': exprs}
@@ -137,6 +191,10 @@ class ListNode(Node):
 class StatementNode(Node):
     def __init__(self, expressions: List[Node]):
         self.expressions = expressions
+
+    @property
+    def pos(self) -> Position:
+        return self.expressions[1].pos
 
     def json(self) -> dict:
         exprs = [e.json() for e in self.expressions]
@@ -149,8 +207,13 @@ class ListAssignNode(Node):
         self.index = index
         self.value = value
 
+    @property
+    def pos(self) -> Position:
+        return self.list.pos
+
     def json(self) -> dict:
-        return {'type': 'list_assign', 'list': self.list.json(), 'index': self.index.__str__(), 'value': self.value.json()}
+        return {'type': 'list_assign', 'list': self.list.json(), 'index': self.index.__str__(),
+                'value': self.value.json()}
 
 
 class StructDefNode(Node):
@@ -158,6 +221,10 @@ class StructDefNode(Node):
         self.values = values
         self.identifier = identifier
         self.functions = functions
+
+    @property
+    def pos(self) -> Position:
+        return self.identifier.pos
 
     def json(self) -> dict:
         funcs = [f.json() for f in self.functions]
@@ -170,14 +237,23 @@ class StructAssignNode(Node):
         self.key = key
         self.value = value
 
+    @property
+    def pos(self) -> Position:
+        return self.obj.pos
+
     def json(self) -> dict:
-        return {'type': 'object_assign', 'object': self.obj.json(), 'key': self.key.__str__(), 'value': self.value.json()}
+        return {'type': 'object_assign', 'object': self.obj.json(), 'key': self.key.__str__(),
+                'value': self.value.json()}
 
 
 class StructReadNode(Node):
     def __init__(self, obj: Node, key: Token):
         self.obj = obj
         self.key = key
+
+    @property
+    def pos(self) -> Position:
+        return self.obj.pos
 
     def json(self) -> dict:
         return {'type': 'object_read', 'object': self.obj.json(), 'key': self.key.__str__()}
@@ -187,28 +263,58 @@ class ImportNode(Node):
     def __init__(self, file_path: Token):
         self.file_path = file_path
 
+    @property
+    def pos(self) -> Position:
+        return self.file_path.pos
+
     def json(self) -> dict:
         return {'type': 'import', 'file': self.file_path.__str__()}
 
 
 class PassNode(Node):
+    def __init__(self, pos: Position):
+        self.position = pos
+
     def json(self) -> dict:
         return {'type': 'pass'}
 
+    @property
+    def pos(self) -> Position:
+        return self.position
+
 
 class ReturnNode(Node):
-    def __init__(self, value: Node | None):
+    def __init__(self, value: Node | None, pos: Position):
         self.value = value
+        self.position = pos
+
+    @property
+    def pos(self) -> Position:
+        return self.position
 
     def json(self) -> dict:
         return {'type': 'return', 'value': self.value.json() if self.value else 'none'}
 
 
 class BreakNode(Node):
+    def __init__(self, pos: Position):
+        self.position = pos
+
+    @property
+    def pos(self) -> Position:
+        return self.position
+
     def json(self) -> dict:
         return {'type': 'break'}
 
 
 class ContinueNode(Node):
+    def __init__(self, pos: Position):
+        self.position = pos
+
+    @property
+    def pos(self) -> Position:
+        return self.position
+
     def json(self) -> dict:
         return {'type': 'continue'}
