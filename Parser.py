@@ -23,7 +23,7 @@ class Parser:
 
     def parse(self) -> Node | Error:
         if self.current_token.type == TT.EOF:
-            return BreakNode()
+            return ReturnNode(None, self.current_token.pos)
         result = self.statement()
         if isinstance(result, Error):
             return result
@@ -153,7 +153,7 @@ class Parser:
                             return else_expr
                         return IfNode(bool_expr, if_expr, else_expr)
                     case _:
-                        return self.err(f'Expected object or if, got {self.current_token}')
+                        return self.err(f'Expected if, got {self.current_token}')
             case _:
                 return self.err(f'Expected identifier, literal or if, got {self.current_token}')
 
@@ -275,6 +275,7 @@ class Parser:
                     self.advance()
                     if self.current_token.type != TT.LPAREN:
                         return self.err(f"Expected '(', got {self.current_token}")
+                    self.context.name += '('
                     self.advance()
                     arg_list: List[Token] = []
                     arg_types: List[Token] = []
@@ -301,34 +302,37 @@ class Parser:
                             self.advance()
                             typ.value += f':{type_name}'
                         arg_types.append(typ)
-                    while self.current_token.type == TT.COMMA:
-                        self.advance()
-                        if self.current_token.type != TT.IDENTIFIER:
-                            return self.err(f'Expected identifier, got {self.current_token}')
-                        arg_list.append(self.current_token)
-                        self.advance()
-                        if self.current_token.type != TT.COLON:
-                            return self.err(f"Expected ':' for type, got {self.current_token}")
-                        self.advance()
-                        typ = self.current_token
-                        if self.current_token.type != TT.TYPE and self.current_token.type != TT.IDENTIFIER:  # todo:
-                            return self.err(f'Expected type, got {self.current_token}')
-                        self.advance()
-                        if typ.value == 'list':
-                            if self.current_token.type != TT.LESS:
-                                return self.err(f"Expected '<type>', got {self.current_token}")
+                        self.context.name += typ.value.lower()
+                        while self.current_token.type == TT.COMMA:
                             self.advance()
+                            if self.current_token.type != TT.IDENTIFIER:
+                                return self.err(f'Expected identifier, got {self.current_token}')
+                            arg_list.append(self.current_token)
+                            self.advance()
+                            if self.current_token.type != TT.COLON:
+                                return self.err(f"Expected ':' for type, got {self.current_token}")
+                            self.advance()
+                            typ = self.current_token
                             if self.current_token.type != TT.TYPE and self.current_token.type != TT.IDENTIFIER:  # todo:
-                                return self.err(f"Expected '<type>', got {self.current_token}")
-                            type_name = self.current_token.value
+                                return self.err(f'Expected type, got {self.current_token}')
                             self.advance()
-                            if self.current_token.type != TT.GREATER:
-                                return self.err(f"Expected '<type>', got {self.current_token}")
-                            self.advance()
-                            typ.value += f':{type_name}'
-                        arg_types.append(typ)
+                            if typ.value == 'list':
+                                if self.current_token.type != TT.LESS:
+                                    return self.err(f"Expected '<type>', got {self.current_token}")
+                                self.advance()
+                                if self.current_token.type != TT.TYPE and self.current_token.type != TT.IDENTIFIER:  # todo:
+                                    return self.err(f"Expected '<type>', got {self.current_token}")
+                                type_name = self.current_token.value
+                                self.advance()
+                                if self.current_token.type != TT.GREATER:
+                                    return self.err(f"Expected '<type>', got {self.current_token}")
+                                self.advance()
+                                typ.value += f':{type_name}'
+                            arg_types.append(typ)
+                            self.context.name += f',{typ.value.lower()}'
                     if self.current_token.type != TT.RPAREN:
-                        return self.err(f"Expected ')', got {self.current_token}")
+                        return self.err(f"Expected ')' or parameter, got {self.current_token}")
+                    self.context.name += ')'
                     self.advance()
                     return_type = Token(TT.TYPE, 'null', self.current_token.pos)
                     if self.current_token.type == TT.ARROW:

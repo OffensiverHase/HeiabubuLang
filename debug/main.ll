@@ -20,15 +20,18 @@ define i32 @"load_main"()
 load_main_entry:
   %"A" = alloca %"A"
   %"obj" = alloca %"A"*
+  ret i32 0
+}
+
+define i32 @"load_lists"()
+{
+load_lists_entry:
+  ret i32 0
   %"A.x_ptr" = getelementptr %"A", %"A"* %"A", i32 0, i32 0
   store i32 420, i32* %"A.x_ptr"
   store %"A"* %"A", %"A"** %"obj"
-  %"obj.1" = load %"A"*, %"A"** %"obj"
-  call void @"hell_yeah"(%"A"* %"obj.1")
-  %"nop" = add i32 0, 0
-  %"obj.2" = load %"A"*, %"A"** %"obj"
-  call void @"hell_yeah"(%"A"* %"obj.2")
-  ret i32 0
+  %"obj" = load %"A"*, %"A"** %"obj"
+  call void @"hell_yeah"(%"A"* %"obj")
 }
 
 define i32* @"lst"(i32 %".1", i32 %".2")
@@ -53,9 +56,17 @@ lst_entry:
 define i32 @"nice"(%"A"* %".1")
 {
 nice_entry:
+  %"list_ptr" = alloca [3 x i32]
   %"self" = alloca %"A"*
   store %"A"* %".1", %"A"** %"self"
-  ret i32 69
+  %"array.0" = getelementptr [3 x i32], [3 x i32]* %"list_ptr", i32 0, i32 0
+  store i32 1, i32* %"array.0"
+  %"array.0.1" = getelementptr i32, i32* %"array.0", i32 1
+  store i32 2, i32* %"array.0.1"
+  %"array.1" = getelementptr i32, i32* %"array.0.1", i32 1
+  store i32 4, i32* %"array.1"
+  %"ret_temp" = getelementptr [3 x i32], [3 x i32]* %"list_ptr", i32 0, i32 0
+  ret i32* %"ret_temp"
 }
 
 define void @"hell_yeah"(%"A"* %".1")

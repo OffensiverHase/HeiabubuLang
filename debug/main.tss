@@ -4,11 +4,12 @@ class A {
     x: int
 
     fun nice() -> int:
-        return 69
+        return 1 + 1 1
 
     fun hell_yeah() {
         print('%i\n', self.nice())
         print('%i\n', self.x)
+
     }
 }
 

@@ -18,8 +18,21 @@
           "fun_body": {
             "type": "return",
             "value": {
-              "type": "number",
-              "number": "INT: 69"
+              "type": "list",
+              "content": [
+                {
+                  "type": "number",
+                  "number": "INT: 1"
+                },
+                {
+                  "type": "number",
+                  "number": "INT: 2"
+                },
+                {
+                  "type": "number",
+                  "number": "INT: 4"
+                }
+              ]
             }
           },
           "ret_type": "TYPE: int"
@@ -48,10 +61,6 @@
                       {
                         "type": "var_access",
                         "identifier": "IDENTIFIER: self"
-                      },
-                      {
-                        "type": "number",
-                        "number": "INT: 1"
                       }
                     ]
                   }

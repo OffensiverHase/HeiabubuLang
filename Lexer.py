@@ -12,7 +12,7 @@ class Lexer:
     def __init__(self, context: Context) -> None:
         self.context = context
         self.text = context.file_text
-        self.pos = Position(-1, 0, -1)
+        self.pos = Position(-1, 0, -1, 1)
         self.current_char: str | None = None
         self.escape_chars = dict(n='\n', t='\t')
         self.types = dict(INT='int', FLOAT='float', NULL='null', BOOL='bool', STR='str', BYTE='byte', LIST='list')
@@ -150,15 +150,19 @@ class Lexer:
             self._advance()
 
         if id_str.upper() in self.types:
+            start_pos.len = self.pos.index - start_pos.index
             return Token(TT.TYPE, id_str, start_pos)
         elif id_str.upper() in TT.keywords.value:
+            start_pos.len = self.pos.index - start_pos.index
             return Token(TT.KEYWORD, id_str.upper(), start_pos)
         else:
+            start_pos.len = self.pos.index - start_pos.index
             return Token(TT.IDENTIFIER, id_str, start_pos)
 
     def _make_number(self) -> Token:
         number_str = ""
         dot_count = 0
+        start_pos = self.pos.copy()
         while self.current_char and (self.current_char.isdigit() or self.current_char == '.'):
             if self.current_char == '.':
                 if dot_count == 0:
@@ -167,11 +171,14 @@ class Lexer:
                     break
             number_str += self.current_char
             self._advance()
-        return Token(TT.INT, int(number_str), self.pos.copy()) if dot_count == 0 else Token(TT.FLOAT, float(number_str),
-                                                                                            self.pos.copy())
+
+        start_pos.len = self.pos.index - start_pos.index
+        if dot_count == 0:
+            return Token(TT.INT, int(number_str), start_pos)
+        return Token(TT.FLOAT, float(number_str), start_pos)
 
     def _make_string(self) -> Token:
-        pos = self.pos.copy()
+        start_pos = self.pos.copy()
         self._advance()
         str_str = ""
         escape = False
@@ -185,9 +192,10 @@ class Lexer:
                 str_str += self.current_char
             self._advance()
         if not self.current_char:
-            fail(InvalidSyntaxError(f"Unclosed string literal'{str_str}'", pos, self.context, 'tokenizing'))
+            fail(InvalidSyntaxError(f"Unclosed string literal'{str_str}'", start_pos, self.context, 'tokenizing'))
         self._advance()
-        return Token(TT.STRING, str_str, pos)
+        start_pos.len = self.pos.index - start_pos.index
+        return Token(TT.STRING, str_str, start_pos)
 
     def _remove_comment(self) -> None:
         while self.current_char and self.current_char != '\n':
@@ -196,44 +204,50 @@ class Lexer:
         self._advance()
 
     def _make_smaller_things(self) -> Token:
-        pos = self.pos.copy()
+        start_pos = self.pos.copy()
         self._advance()
         match self.current_char:
             case '=':
                 self._advance()
-                return Token(TT.LESSEQUAL, None, pos)
+                start_pos.len = self.pos.index - start_pos.index
+                return Token(TT.LESSEQUAL, None, start_pos)
             case '>':
                 self._advance()
-                return Token(TT.UNEQUALS, None, pos)
+                start_pos.len = self.pos.index - start_pos.index
+                return Token(TT.UNEQUALS, None, start_pos)
             case '-':
                 self._advance()
-                return Token(TT.ASSIGN, None, pos)
+                start_pos.len = self.pos.index - start_pos.index
+                return Token(TT.ASSIGN, None, start_pos)
             case _:
-                return Token(TT.LESS, None, pos)
+                return Token(TT.LESS, None, start_pos)
 
     def _make_bigger_things(self) -> Token:
-        pos = self.pos.copy()
+        start_pos = self.pos.copy()
         self._advance()
         if self.current_char == '=':
             self._advance()
-            return Token(TT.GREATEREQUAL, None, pos)
+            start_pos.len = self.pos.index - start_pos.index
+            return Token(TT.GREATEREQUAL, None, start_pos)
         else:
-            return Token(TT.GREATER, None, self.pos)
+            return Token(TT.GREATER, None, start_pos)
 
     def _make_dot_things(self) -> Token:
-        pos = self.pos.copy()
+        start_pos = self.pos.copy()
         self._advance()
         if self.current_char == '.':
             self._advance()
-            return Token(TT.TO, None, pos)
+            start_pos.len = self.pos.index - start_pos.index
+            return Token(TT.TO, None, start_pos)
         else:
-            return Token(TT.DOT, None, pos)
+            return Token(TT.DOT, None, start_pos)
 
     def _make_minus_things(self) -> Token:
-        pos = self.pos.copy()
+        start_pos = self.pos.copy()
         self._advance()
         if self.current_char == '>':
             self._advance()
-            return Token(TT.ARROW, None, pos)
+            start_pos.len = self.pos.index - start_pos.index
+            return Token(TT.ARROW, None, start_pos)
         else:
             return Token(TT.MINUS, None, self.pos.copy())

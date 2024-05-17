@@ -9,5 +9,5 @@ class Context:
         self.file_text = file_text
 
     def __str__(self):
-        return f'\n{self.file}:\t\t{self.name}' if not self.parent else f'\n{self.file}:\t\t{self.name}{self.parent}'
+        return f'\tsrc --> {self.file}\n\tfun -> {self.name}\n'
 

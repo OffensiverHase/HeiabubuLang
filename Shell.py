@@ -6,12 +6,13 @@ from ctypes import CFUNCTYPE, c_int
 
 import llvmlite.binding as llvm
 import llvmlite.ir
+from termcolor import colored
 
 from Context import Context
 from Error import Error
 from IrBuilder import IrBuilder
 from Lexer import Lexer
-from Methods import fail, print_err
+from Methods import fail
 from Parser import Parser
 
 
@@ -126,7 +127,7 @@ def cmp(module: llvmlite.ir.Module):
 
         subprocess.run(['gcc', OUTPUT + '_temp.o', '-o', OUTPUT], capture_output=True, text=True)
     except Exception as e:
-        print_err(e)
+        print(colored(str(e), 'red'))
     finally:
         os.remove(OUTPUT + '_temp.o')
 

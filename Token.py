@@ -5,10 +5,11 @@ from typing import Any
 
 
 class Position:
-    def __init__(self, index: int, line: int, column: int) -> None:
+    def __init__(self, index: int, line: int, column: int, length: int) -> None:
         self.index = index
         self.line = line
         self.column = column
+        self.len = length
 
     def advance(self, char: str) -> None:
         self.index += 1
@@ -18,7 +19,7 @@ class Position:
             self.column = 0
 
     def copy(self) -> Position:
-        return Position(self.index, self.line, self.column)
+        return Position(self.index, self.line, self.column, self.len)
 
 
 class Token:

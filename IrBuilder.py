@@ -6,11 +6,11 @@ from typing import NoReturn
 from llvmlite import ir
 from llvmlite.ir import CompareInstr, GlobalVariable
 from llvmlite.ir._utils import DuplicatedNameError
+from termcolor import colored
 
 from Env import Environment
 from Error import *
 from Lexer import Lexer
-from Methods import print_err
 from Node import *
 from Parser import Parser
 from Token import TT
@@ -115,8 +115,11 @@ class IrBuilder:
 
             self.visit(node)
 
-            if not self.builder.block.is_terminated:
+            if not block.is_terminated:
+                prev_block = self.builder.block
+                self.builder.position_at_end(block)
                 self.builder.ret(self.int_type(0))
+                self.builder.position_at_end(prev_block)
 
     def visit(self, node: Node) -> tuple[ir.Value, ir.Type] | None:
         method = getattr(self, 'visit' + node.__class__.__name__, self.visit_unknown_node)
@@ -157,7 +160,9 @@ class IrBuilder:
             prev_builder = self.builder
             self.builder = ir.IRBuilder(block)
             self.env = Environment(parent=self.env, name=name)
-            self.context = Context(self.context, name, self.context.file, self.context.file_text)
+
+            param_name = str([t.value.lower() for t in node.arg_types]).replace("'", '').removeprefix('[').removesuffix(']')
+            self.context = Context(self.context, f'{name}({param_name})', self.context.file, self.context.file_text)
 
             params_ptr: list[ir.AllocaInstr] = []
 
@@ -499,13 +504,13 @@ class IrBuilder:
     def visitImportNode(self, node: ImportNode):
         file_path = node.file_path.value
         if self.global_imports.get(file_path) is not None:
-            print_err(f'Already imported {file_path} globally!')
+            print(colored(f'Already imported {file_path} globally!', 'red'))
             return
 
         with open(os.path.abspath(f'{file_path}.tss'), 'r') as f:  # todo
             file_code = f.read()
 
-        ctx = Context(self.context, f'import_{file_path}', file_path, file_code)
+        ctx = Context(self.context, f'load_{file_path}()', file_path, file_code)
         lexer = Lexer(ctx)
         tokens = lexer.make_tokens()
         parser = Parser(tokens, ctx)
@@ -514,7 +519,7 @@ class IrBuilder:
             raise ast
 
         self.context = ctx
-        self.visit(ast)
+        self.build(ast)
         self.context = ctx.parent
 
         self.global_imports[file_path] = True

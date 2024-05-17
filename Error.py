@@ -12,9 +12,9 @@ class Error(Exception):
 
     def __str__(self):
         if self.pos:
-            return f'{self.name}: {self.details}, File {self.context.file}, line {self.pos.line + 1}, pos {self.pos.column}'
+            return f'{self.name}: {self.details}, file {self.context.file}, line {self.pos.line + 1}, pos {self.pos.column}'
         else:
-            return f'{self.name}: {self.details}, File {self.context.file}'
+            return f'{self.name}: {self.details}, file {self.context.file}'
 
 
 class IllegalCharError(Error):
