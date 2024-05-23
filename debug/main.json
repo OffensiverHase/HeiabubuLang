@@ -7,7 +7,7 @@
       "functions": [
         {
           "type": "fun_def",
-          "identifier": "IDENTIFIER: C.a",
+          "identifier": "IDENTIFIER: C:a",
           "params": {
             "IDENTIFIER: self": "TYPE: C"
           },
@@ -21,6 +21,27 @@
             "value": {
               "type": "number",
               "number": "INT: 10"
+            }
+          },
+          "ret_type": "TYPE: null"
+        },
+        {
+          "type": "fun_def",
+          "identifier": "IDENTIFIER: C:create",
+          "params": {
+            "IDENTIFIER: self": "TYPE: C",
+            "IDENTIFIER: num": "TYPE: int"
+          },
+          "fun_body": {
+            "type": "object_assign",
+            "object": {
+              "type": "var_access",
+              "identifier": "IDENTIFIER: self"
+            },
+            "key": "IDENTIFIER: num",
+            "value": {
+              "type": "var_access",
+              "identifier": "IDENTIFIER: num"
             }
           },
           "ret_type": "TYPE: null"
@@ -60,22 +81,6 @@
       "ret_type": "TYPE: null"
     },
     {
-      "type": "fun_def",
-      "identifier": "IDENTIFIER: five",
-      "params": {
-        "IDENTIFIER: one": "TYPE: int",
-        "IDENTIFIER: two": "TYPE: int",
-        "IDENTIFIER: three": "TYPE: int",
-        "IDENTIFIER: four": "TYPE: int",
-        "IDENTIFIER: five": "TYPE: int"
-      },
-      "fun_body": {
-        "type": "return",
-        "value": "none"
-      },
-      "ret_type": "TYPE: null"
-    },
-    {
       "type": "var_assign",
       "identifier": "IDENTIFIER: obj",
       "type_annotation": "none",
@@ -89,6 +94,24 @@
           }
         ]
       }
+    },
+    {
+      "type": "fun_call",
+      "identifier": "IDENTIFIER: print",
+      "args": [
+        {
+          "type": "str",
+          "value": "STRING: %i\\n"
+        },
+        {
+          "type": "object_read",
+          "object": {
+            "type": "var_access",
+            "identifier": "IDENTIFIER: obj"
+          },
+          "key": "IDENTIFIER: num"
+        }
+      ]
     },
     {
       "type": "fun_call",

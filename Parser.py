@@ -399,12 +399,19 @@ class Parser:
                                 return fun
                             fun.args.insert(0, Token(TT.IDENTIFIER, 'self', self.current_token.pos))
                             fun.arg_types.insert(0, Token(TT.TYPE, name.value, self.current_token.pos))
-                            fun.identifier.value = f'{name.value}.{fun.identifier.value}'
+                            fun.identifier.value = f'{name.value}:{fun.identifier.value}'
                             funcs.append(fun)
                             self.ignore_newlines()
                         else:
                             return self.err(f'WTF??? Line 396 Parser.py')  # Can't be since check in line 371
                     self.advance()
+                    if not any(fun.identifier.value == f'{name.value}:create' for fun in funcs):
+                        identifier = Token(TT.IDENTIFIER, f'{name.value}:create', name.pos)
+                        args: List[Token] = [Token(TT.IDENTIFIER, 'self', self.current_token.pos)]
+                        arg_types: List[Token] = [Token(TT.TYPE, name.value, self.current_token.pos)]
+                        body = PassNode(name.pos)
+                        return_type = Token(TT.TYPE, 'null', name.pos)
+                        funcs.append(FunDefNode(identifier, args, arg_types, body, return_type))
                     return StructDefNode(name, values, funcs)
                 case 'PASS':
                     pos = self.current_token.pos

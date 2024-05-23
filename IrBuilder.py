@@ -84,15 +84,21 @@ class IrBuilder:
             return ir.Function(self.module, funty, 'printf')
 
         def init_c_std_library() -> None:
-            strlen_ty = ir.FunctionType(self.int_type, [ir.IntType(8).as_pointer()], var_arg=False)
+            strlen_ty = ir.FunctionType(self.int_type, [self.str_type], var_arg=False)
             strlen_func = ir.Function(self.module, strlen_ty, name="strlen")
 
-            malloc_ty = ir.FunctionType(ir.IntType(8).as_pointer(), [self.int_type], var_arg=False)
+            malloc_ty = ir.FunctionType(self.str_type, [self.int_type], var_arg=False)
             malloc_func = ir.Function(self.module, malloc_ty, name="malloc")
 
-            strcpy_ty = ir.FunctionType(ir.IntType(8).as_pointer(),
-                                        [ir.IntType(8).as_pointer(), ir.IntType(8).as_pointer()], var_arg=False)
+            strcpy_ty = ir.FunctionType(self.str_type,
+                                        [self.str_type, self.str_type], var_arg=False)
             strcpy_func = ir.Function(self.module, strcpy_ty, name="strcpy")
+
+            strcmp_ty = ir.FunctionType(self.int_type, [self.str_type, self.str_type], var_arg=False)
+            strcmp = ir.Function(self.module, strcmp_ty, name='strcmp')
+
+            getchar_ty = ir.FunctionType(self.int_type, [], var_arg=False)
+            getchar = ir.Function(self.module, getchar_ty, name='getchar')
 
             self.env.define('len', strlen_func, self.int_type)
 
@@ -253,9 +259,10 @@ class IrBuilder:
 
         value, Type = self.visit(value_node)
 
-        if value_type != Type and value_type is not None and (
-                (value_type != Type.pointee) if Type.is_pointer else True):
-            self.err(TypeError, f'Expected {value_type}, ot {Type}', node.value.pos)
+        # todo checking
+        # if value_type != Type and value_type is not None and (
+        #         (value_type != Type.pointee) if Type.is_pointer else True):
+        #     self.err(TypeError, f'Expected {value_type}, got {Type}', node.value.pos)
 
         if self.env.lookup(name) == (None, None):
 
@@ -524,7 +531,7 @@ class IrBuilder:
 
         prev_block = self.builder.block
         self.context = ctx
-        self.build(ast)  # todo move builder block!
+        self.build(ast)
         self.context = ctx.parent
         self.builder.position_at_end(prev_block)
 
@@ -567,6 +574,9 @@ class IrBuilder:
                              node.identifier.pos)
                 ret = self.printf(params=args, return_type=types[0])
                 ret_type = self.int_type
+            case 'getchar':
+                ret = self.getchar()
+                ret_type = ir.ArrayType(self.byte_type, 2).as_pointer()
             case _:
                 for typ in types:
                     name += f'.{typ}'.replace('"', '').replace('%', '')
@@ -586,6 +596,7 @@ class IrBuilder:
     def init_struct(self, node: FunCallNode) -> tuple[ir.Value, ir.Type]:
         name = node.identifier.value
         params = node.args
+        create_name = f'{name}:create.{name}*'
 
         args: list[ir.Value] = []
         types: list[ir.Type] = []
@@ -594,26 +605,19 @@ class IrBuilder:
             p_val, p_type = self.visit(p)
             args.append(p_val)
             types.append(p_type)
+            create_name += f'.{p_type}'.replace('"', '').replace('%', '')
 
         struct_type = self.module.context.get_identified_type(name)
-        struct_obj = self.structs[name]
-
-        expected_len = len(struct_obj.field_indices)
-        real_len = len(params)
-        if real_len != expected_len:
-            self.err(InvalidSyntaxError, f'Expected {expected_len} parameters, got {real_len}', node.identifier.pos)
 
         struct_ptr = self.allocator.alloca(struct_type, name=name)
         self.builder._anchor += 1
 
-        for i, arg in enumerate(args):
-            ptr = self.builder.gep(struct_ptr, [self.int_type(0), self.int_type(i)],
-                                   name=f'{name}.{list(struct_obj.field_indices)[i]}_ptr')
-            if types[i].is_pointer and isinstance(types[i].pointee, ir.ArrayType):
-                val = self.builder.bitcast(args[i], self.str_type, name='casted_str_val')
-                self.builder.store(val, ptr)
-            else:
-                self.builder.store(arg, ptr)
+        args.insert(0, struct_ptr)
+        types.insert(0, struct_ptr.type)
+
+        fun, funty = self.env.lookup(create_name)
+
+        self.builder.call(fun, args, name=f'{name}:create')
 
         return struct_ptr, struct_ptr.type
 
@@ -787,6 +791,24 @@ class IrBuilder:
 
                 Type = value.type
 
+            case TT.EQUALS:
+                str_ptr1 = self.builder.gep(left_value, [self.int_type(0)] if left_value.type == self.str_type else [
+                    self.int_type(0), self.int_type(0)], name="str_ptr1")
+                str_ptr2 = self.builder.gep(right_value, [self.int_type(0)] if left_value.type == self.str_type else [
+                    self.int_type(0), self.int_type(0)], name="str_ptr2")
+                eq = self.builder.call(self.module.globals.get("strcmp"), [str_ptr1, str_ptr2], name='int_eq')
+                value = self.builder.icmp_signed('==', eq, self.int_type(0), name='eq')
+                Type = value.type
+
+            case TT.UNEQUALS:
+                str_ptr1 = self.builder.gep(left_value, [self.int_type(0)] if left_value.type == self.str_type else [
+                    self.int_type(0), self.int_type(0)], name="str_ptr1")
+                str_ptr2 = self.builder.gep(right_value, [self.int_type(0)] if left_value.type == self.str_type else [
+                    self.int_type(0), self.int_type(0)], name="str_ptr2")
+                eq = self.builder.call(self.module.globals.get("strcmp"), [str_ptr1, str_ptr2], name='int_eq')
+                value = self.builder.icmp_signed('!=', eq, self.int_type(0), name='eq')
+                Type = value.type
+
             case _:
                 self.err(InvalidSyntaxError, f'unknown operation {operator} on str and str', operator.pos)
 
@@ -830,6 +852,17 @@ class IrBuilder:
             fmt_arg = self.builder.bitcast(self.module.get_global(f'__str_{self.counter}'), self.str_type,
                                            name='c_str_to_ptr')
             return self.builder.call(func, [fmt_arg, *rest_params], name='printf.ret')
+
+    def getchar(self) -> ir.Value:
+        int_value = self.builder.call(self.module.globals.get('getchar'), [], name='int_getchar.ret')
+        byte_value = self.builder.trunc(int_value, self.byte_type, name='getchar_trunc')
+        ptr = self.allocator.alloca(ir.ArrayType(self.byte_type, 2), name='getchar_str')
+        self.builder._anchor += 1
+        elem_ptr = self.builder.gep(ptr, [self.int_type(0), self.int_type(0)], name='getchar_str_elem')
+        self.builder.store(byte_value, elem_ptr)
+        elem_ptr = self.builder.gep(ptr, [self.int_type(0), self.int_type(1)], name='getchar_str_null')
+        self.builder.store(self.byte_type(0), elem_ptr)
+        return ptr
 
     def is_str(self, typ: ir.Type) -> bool:
         if typ == self.str_type:
