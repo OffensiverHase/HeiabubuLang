@@ -143,6 +143,7 @@ class IrBuilder:
             if isinstance(Type, ir.BaseStructType):
                 Type = Type.as_pointer()
             param_types.append(Type)
+            name += f'.{Type}'.replace('"', '').replace('%', '')
         return_type = self.get_type(node.return_type.value, node.return_type.pos)
         if return_type.__class__ in [ir.IdentifiedStructType, ir.LiteralStructType]:
             return_type = return_type.as_pointer()
@@ -494,6 +495,7 @@ class IrBuilder:
             self.err(IndexError, f'Object from class {struct_obj.name} has no attr called {key}', node.key.pos)
 
         if not struct_type.is_pointer:
+            raise AssertionError('struct_type.is_pointer is true! line 498')
             pass  # todo when is this the case?
 
         ptr = self.builder.gep(struct, [self.int_type(0), self.int_type(index)] if struct_type.is_pointer else [
@@ -513,19 +515,23 @@ class IrBuilder:
         ctx = Context(self.context, f'load_{file_path}()', file_path, file_code)
         lexer = Lexer(ctx)
         tokens = lexer.make_tokens()
+        if isinstance(tokens, Error):
+            raise tokens
         parser = Parser(tokens, ctx)
         ast = parser.parse()
         if isinstance(ast, Error):
             raise ast
 
+        prev_block = self.builder.block
         self.context = ctx
-        self.build(ast)
+        self.build(ast)  # todo move builder block!
         self.context = ctx.parent
+        self.builder.position_at_end(prev_block)
 
         self.global_imports[file_path] = True
 
     def visitFunCallNode(self, node: FunCallNode) -> tuple[ir.Value, ir.Type]:
-        name = node.identifier.value
+        name: str = node.identifier.value
         params = node.args
 
         if name in self.structs.keys():
@@ -549,6 +555,10 @@ class IrBuilder:
             args.append(p_val)
             types.append(p_type)
 
+        if name.__contains__('struct:'):
+            struct_type: ir.IdentifiedStructType | ir.PointerType = types[0]
+            struct_name = struct_type.pointee.name if struct_type.is_pointer else struct_type.name
+            name = name.replace('struct:', f'{struct_name}.')
 
         match name:
             case 'print':
@@ -558,6 +568,8 @@ class IrBuilder:
                 ret = self.printf(params=args, return_type=types[0])
                 ret_type = self.int_type
             case _:
+                for typ in types:
+                    name += f'.{typ}'.replace('"', '').replace('%', '')
                 func, ret_type = self.env.lookup(name)
                 if not func:
                     self.err(NoSuchVarError, f'No function called {name}', node.identifier.pos)

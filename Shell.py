@@ -37,10 +37,10 @@ def parse_args() -> Namespace:
     arg_parser = ArgumentParser(prog='Teness', description='LLVM implementation of a TenessScript compiler',
                                 epilog='Exit Status:\n\tReturns 0 unless an error occurs')
 
-    arg_parser.add_argument('file_path', type=str, help='Path to your entry point Teness file. (e.g. main.tss)')
+    arg_parser.add_argument('file_path', help='Path to your entry point Teness file. (e.g. main.tss)')
     arg_parser.add_argument('-d', type=str, action='append', choices=['tokens', 'ast', 'ir', 'asm'], help='Dump')
     arg_parser.add_argument('-o', type=str, help='The emitted output file. (e.g. main.exe)')
-    arg_parser.add_argument('-no_opt', action='store_false', help='Turn off all the optimisations')
+    arg_parser.add_argument('-no_opt', action='store_false', help='Turn off all optimisations')
     arg_parser.add_argument('-run', action='store_true',
                             help='Run the given file via JIT compilation, dont create an executable')
     return arg_parser.parse_args()
@@ -61,6 +61,9 @@ def run(text: str, file: str):
     ctx = Context(None, f'load_{file}', file, text)
     lexer = Lexer(ctx)
     tokens = lexer.make_tokens()
+    if isinstance(tokens, Error):
+        fail(tokens)
+        return
     if TOKENS_DEBUG:
         with open(OUTPUT + '.tokens', 'w') as f:
             f.write(tokens.__str__())

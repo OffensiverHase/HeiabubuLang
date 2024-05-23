@@ -8,6 +8,7 @@ from termcolor import colored
 
 
 def fail(error: Error):
+    print()
     print(colored(str(error), 'red'))
     print(''
           f'Context:\n'

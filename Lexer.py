@@ -22,7 +22,7 @@ class Lexer:
         self.pos.advance(self.current_char if self.current_char else ' ')
         self.current_char = self.text[self.pos.index] if self.pos.index < len(self.text) else None
 
-    def make_tokens(self) -> List[Token]:
+    def make_tokens(self) -> List[Token] | IllegalCharError:
         tokens: List[Token] = []
         while self.current_char:
             match self.current_char:
@@ -134,10 +134,8 @@ class Lexer:
                     elif self.current_char.isalpha():
                         tokens.append(self._make_identifier())
                     else:
-                        fail(IllegalCharError(f'Found illegal char: {self.current_char}', self.pos, self.context,
-                                              'tokenizing'))
-                        tokens.append(Token(TT.EOF, None, self.pos.copy()))
-                        break
+                        return IllegalCharError(f'Found illegal char: {self.current_char}', self.pos, self.context,
+                                                'tokenizing')
         tokens.append(Token(TT.EOF, None, self.pos.copy()))
         return tokens
 

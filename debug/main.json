@@ -2,93 +2,78 @@
   "type": "statement",
   "body": [
     {
-      "type": "import",
-      "file": "IDENTIFIER: lists"
-    },
-    {
       "type": "class_def",
-      "fields": "{IDENTIFIER: x: TYPE: int}",
+      "fields": "{IDENTIFIER: num: TYPE: int}",
       "functions": [
         {
           "type": "fun_def",
-          "identifier": "IDENTIFIER: nice",
+          "identifier": "IDENTIFIER: C.a",
           "params": {
-            "IDENTIFIER: self": "TYPE: A"
+            "IDENTIFIER: self": "TYPE: C"
           },
           "fun_body": {
-            "type": "return",
+            "type": "object_assign",
+            "object": {
+              "type": "var_access",
+              "identifier": "IDENTIFIER: self"
+            },
+            "key": "IDENTIFIER: num",
             "value": {
-              "type": "list",
-              "content": [
-                {
-                  "type": "number",
-                  "number": "INT: 1"
-                },
-                {
-                  "type": "number",
-                  "number": "INT: 2"
-                },
-                {
-                  "type": "number",
-                  "number": "INT: 4"
-                }
-              ]
+              "type": "number",
+              "number": "INT: 10"
             }
-          },
-          "ret_type": "TYPE: int"
-        },
-        {
-          "type": "fun_def",
-          "identifier": "IDENTIFIER: hell_yeah",
-          "params": {
-            "IDENTIFIER: self": "TYPE: A"
-          },
-          "fun_body": {
-            "type": "statement",
-            "body": [
-              {
-                "type": "fun_call",
-                "identifier": "IDENTIFIER: print",
-                "args": [
-                  {
-                    "type": "str",
-                    "value": "STRING: %i\\n"
-                  },
-                  {
-                    "type": "fun_call",
-                    "identifier": "IDENTIFIER: nice",
-                    "args": [
-                      {
-                        "type": "var_access",
-                        "identifier": "IDENTIFIER: self"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "fun_call",
-                "identifier": "IDENTIFIER: print",
-                "args": [
-                  {
-                    "type": "str",
-                    "value": "STRING: %i\\n"
-                  },
-                  {
-                    "type": "object_read",
-                    "object": {
-                      "type": "var_access",
-                      "identifier": "IDENTIFIER: self"
-                    },
-                    "key": "IDENTIFIER: x"
-                  }
-                ]
-              }
-            ]
           },
           "ret_type": "TYPE: null"
         }
       ]
+    },
+    {
+      "type": "fun_def",
+      "identifier": "IDENTIFIER: change",
+      "params": {
+        "IDENTIFIER: c": "IDENTIFIER: C"
+      },
+      "fun_body": {
+        "type": "object_assign",
+        "object": {
+          "type": "var_access",
+          "identifier": "IDENTIFIER: c"
+        },
+        "key": "IDENTIFIER: num",
+        "value": {
+          "type": "bin_op",
+          "left": {
+            "type": "object_read",
+            "object": {
+              "type": "var_access",
+              "identifier": "IDENTIFIER: c"
+            },
+            "key": "IDENTIFIER: num"
+          },
+          "operator": "PLUS",
+          "right": {
+            "type": "number",
+            "number": "INT: 1"
+          }
+        }
+      },
+      "ret_type": "TYPE: null"
+    },
+    {
+      "type": "fun_def",
+      "identifier": "IDENTIFIER: five",
+      "params": {
+        "IDENTIFIER: one": "TYPE: int",
+        "IDENTIFIER: two": "TYPE: int",
+        "IDENTIFIER: three": "TYPE: int",
+        "IDENTIFIER: four": "TYPE: int",
+        "IDENTIFIER: five": "TYPE: int"
+      },
+      "fun_body": {
+        "type": "return",
+        "value": "none"
+      },
+      "ret_type": "TYPE: null"
     },
     {
       "type": "var_assign",
@@ -96,22 +81,40 @@
       "type_annotation": "none",
       "value": {
         "type": "fun_call",
-        "identifier": "IDENTIFIER: A",
+        "identifier": "IDENTIFIER: C",
         "args": [
           {
             "type": "number",
-            "number": "INT: 420"
+            "number": "INT: 1"
           }
         ]
       }
     },
     {
       "type": "fun_call",
-      "identifier": "IDENTIFIER: hell_yeah",
+      "identifier": "IDENTIFIER: change",
       "args": [
         {
           "type": "var_access",
           "identifier": "IDENTIFIER: obj"
+        }
+      ]
+    },
+    {
+      "type": "fun_call",
+      "identifier": "IDENTIFIER: print",
+      "args": [
+        {
+          "type": "str",
+          "value": "STRING: %i"
+        },
+        {
+          "type": "object_read",
+          "object": {
+            "type": "var_access",
+            "identifier": "IDENTIFIER: obj"
+          },
+          "key": "IDENTIFIER: num"
         }
       ]
     }

@@ -1,17 +1,15 @@
-import lists
-
-class A {
-    x: int
-
-    fun nice() -> int:
-        return 1 + 1 1
-
-    fun hell_yeah() {
-        print('%i\n', self.nice())
-        print('%i\n', self.x)
-
-    }
+class C {
+    num: int
+    fun a():
+        self.num <- 10
 }
 
-obj <- A(420)
-obj.hell_yeah()
+fun change(c: C):
+    c.num <- c.num + 1
+
+fun five(one: int, two: int, three: int, four: int, five: int):
+    return
+
+obj <- C(1)
+change(obj)
+print('%i', obj.num)
