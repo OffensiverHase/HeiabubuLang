@@ -14,6 +14,7 @@ from IrBuilder import IrBuilder
 from Lexer import Lexer
 from Methods import fail
 from Parser import Parser
+from Semantic import Analyser
 
 
 def start():
@@ -66,7 +67,7 @@ def run(text: str, file: str):
         return
     if TOKENS_DEBUG:
         with open(OUTPUT + '.tokens', 'w') as f:
-            f.write(tokens.__str__())
+            f.write(f'{file}:\n' + ' ' + ' '.join(map(str, tokens)))
     parser = Parser(tokens, ctx)
     ast = parser.parse()
     if isinstance(ast, Error):
@@ -75,6 +76,12 @@ def run(text: str, file: str):
     if AST_DEBUG:
         with open(OUTPUT + '.json', 'w') as f:
             f.write(ast.__str__())
+    analyser = Analyser(ctx)
+    try:
+        analyser.check(ast)
+    except Error as e:
+        fail(e)
+        return
     builder = IrBuilder(ctx)
     try:
         builder.build(ast)

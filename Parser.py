@@ -490,7 +490,7 @@ class Parser:
             if isinstance(expr, Error):
                 return expr
             expressions.append(expr)
-        return StatementNode(expressions)
+        return StatementsNode(expressions)
 
     def ignore_newlines(self):
         while self.current_token.type == TT.NEWLINE:

@@ -29,7 +29,7 @@ class Token:
         self.pos = pos
 
     def __str__(self) -> str:
-        return f'{self.type.name}: {self.value}' if self.value else f'{self.type.name}'
+        return f'{self.type.value}: {self.value}' if self.value else f'{self.type.value}'
 
     def __repr__(self) -> str:
         return str(self)
@@ -66,7 +66,7 @@ class TT(Enum):
     RSQUARE = ']'
     GET = '[...]'
     COLON = ':'
-    NEWLINE = '\\n'
+    NEWLINE = '\n'
     LCURLY = '{'
     RCURLY = '}'
     DOT = '.'

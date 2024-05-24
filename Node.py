@@ -46,14 +46,14 @@ class BinOpNode(Node):
 class UnaryOpNode(Node):
     def __init__(self, operator: Token, node: Node):
         self.operator = operator
-        self.node = node
+        self.value = node
 
     @property
     def pos(self) -> Position:
         return self.operator.pos
 
     def json(self) -> dict:
-        return {'type': 'unary_op', 'operator': self.operator.__str__(), 'right': self.node.json()}
+        return {'type': 'unary_op', 'operator': self.operator.__str__(), 'right': self.value.json()}
 
 
 class VarAccessNode(Node):
@@ -188,7 +188,7 @@ class ListNode(Node):
         return {'type': 'list', 'content': exprs}
 
 
-class StatementNode(Node):
+class StatementsNode(Node):
     def __init__(self, expressions: List[Node]):
         self.expressions = expressions
 

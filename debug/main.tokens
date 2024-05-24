@@ -1,0 +1,6 @@
+main:
+ keyword: FUN identifier: a ( ) -> type: int : 
+ keyword: RETURN identifier: print ( string: hello ) 
+ 
+ identifier: b <- identifier: a 
+ identifier: b ( ) end of file

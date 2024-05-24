@@ -2,9 +2,6 @@ from __future__ import annotations
 
 from llvmlite import ir
 
-from Error import NoSuchVarError
-
-
 class Environment:
     def __init__(self, records: dict[str, tuple[ir.Value, ir.Type]] | None = None, parent: Environment | None = None,
                  name: str = 'main'):

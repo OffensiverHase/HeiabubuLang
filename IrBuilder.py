@@ -13,6 +13,7 @@ from Error import *
 from Lexer import Lexer
 from Node import *
 from Parser import Parser
+from Semantic import Analyser
 from Token import TT
 
 
@@ -105,8 +106,8 @@ class IrBuilder:
         self.env.define('printf', init_print(), self.int_type)
 
         true, false = init_bool()
-        self.env.define('true', true, true.type)
-        self.env.define('false', false, false.type)
+        self.env.define('true', true, self.bool_type)
+        self.env.define('false', false, self.bool_type)
 
         init_c_std_library()
 
@@ -135,7 +136,7 @@ class IrBuilder:
         Type = self.int_type if node.token.type == TT.INT else self.float_type
         return Type(node.token.value), Type
 
-    def visitStatementNode(self, node: StatementNode):
+    def visitStatementsNode(self, node: StatementsNode):
         for expr in node.expressions:
             self.visit(expr)
 
@@ -252,6 +253,14 @@ class IrBuilder:
 
         return list_ptr, list_ptr.type
 
+    def visitListAssignNode(self, node: ListAssignNode):
+        lst = self.visit(node.list)
+        value = self.visit(node.value)
+        index = self.visit(node.index)
+
+        idx_ptr = self.builder.gep(lst, index, name='idx_ptr')
+        self.builder.store(value, idx_ptr)
+
     def visitVarAssignNode(self, node: VarAssignNode):
         name: str = node.name.value
         value_node = node.value
@@ -295,9 +304,10 @@ class IrBuilder:
             value, Type = self.int_bin_op(left_value, right_value, operator)
 
         elif right_type == self.float_type or left_type == self.float_type:
+            convert_left = False
             if right_type == self.int_type or left_type == self.int_type:
                 convert_left = right_type == self.float_type
-                value, Type = self.float_bin_op(left_value, right_value, convert_left, operator)
+            value, Type = self.float_bin_op(left_value, right_value, convert_left, operator)
 
         elif right_type == self.bool_type and left_type == self.bool_type:
             value, Type = self.bool_bin_op(left_value, right_value, operator)
@@ -323,13 +333,13 @@ class IrBuilder:
 
     def visitUnaryOpNode(self, node: UnaryOpNode) -> tuple[ir.Value, ir.Type]:
         operator = node.operator
-        node_value, node_Type = self.visit(node.node)
+        node_value, node_Type = self.visit(node.value)
         value = None
         Type = node_Type
         if operator.type == TT.PLUS:
             value = node_value
         elif operator.type == TT.MINUS:
-            value = self.builder.neg(node_value)
+            value = self.builder.neg(node_value) if node_Type == self.int_type else self.builder.fneg(node_value)
         elif operator.type == TT.NOT:
             value = self.builder.not_(node_value)
         else:
@@ -528,6 +538,9 @@ class IrBuilder:
         ast = parser.parse()
         if isinstance(ast, Error):
             raise ast
+
+        analyser = Analyser(ctx)
+        analyser.check(ast)
 
         prev_block = self.builder.block
         self.context = ctx

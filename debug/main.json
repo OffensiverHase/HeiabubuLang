@@ -2,144 +2,37 @@
   "type": "statement",
   "body": [
     {
-      "type": "class_def",
-      "fields": "{IDENTIFIER: num: TYPE: int}",
-      "functions": [
-        {
-          "type": "fun_def",
-          "identifier": "IDENTIFIER: C:a",
-          "params": {
-            "IDENTIFIER: self": "TYPE: C"
-          },
-          "fun_body": {
-            "type": "object_assign",
-            "object": {
-              "type": "var_access",
-              "identifier": "IDENTIFIER: self"
-            },
-            "key": "IDENTIFIER: num",
-            "value": {
-              "type": "number",
-              "number": "INT: 10"
-            }
-          },
-          "ret_type": "TYPE: null"
-        },
-        {
-          "type": "fun_def",
-          "identifier": "IDENTIFIER: C:create",
-          "params": {
-            "IDENTIFIER: self": "TYPE: C",
-            "IDENTIFIER: num": "TYPE: int"
-          },
-          "fun_body": {
-            "type": "object_assign",
-            "object": {
-              "type": "var_access",
-              "identifier": "IDENTIFIER: self"
-            },
-            "key": "IDENTIFIER: num",
-            "value": {
-              "type": "var_access",
-              "identifier": "IDENTIFIER: num"
-            }
-          },
-          "ret_type": "TYPE: null"
-        }
-      ]
-    },
-    {
       "type": "fun_def",
-      "identifier": "IDENTIFIER: change",
-      "params": {
-        "IDENTIFIER: c": "IDENTIFIER: C"
-      },
+      "identifier": "identifier: a",
+      "params": {},
       "fun_body": {
-        "type": "object_assign",
-        "object": {
-          "type": "var_access",
-          "identifier": "IDENTIFIER: c"
-        },
-        "key": "IDENTIFIER: num",
+        "type": "return",
         "value": {
-          "type": "bin_op",
-          "left": {
-            "type": "object_read",
-            "object": {
-              "type": "var_access",
-              "identifier": "IDENTIFIER: c"
-            },
-            "key": "IDENTIFIER: num"
-          },
-          "operator": "PLUS",
-          "right": {
-            "type": "number",
-            "number": "INT: 1"
-          }
+          "type": "fun_call",
+          "identifier": "identifier: print",
+          "args": [
+            {
+              "type": "str",
+              "value": "string: hello"
+            }
+          ]
         }
       },
-      "ret_type": "TYPE: null"
+      "ret_type": "type: int"
     },
     {
       "type": "var_assign",
-      "identifier": "IDENTIFIER: obj",
+      "identifier": "identifier: b",
       "type_annotation": "none",
       "value": {
-        "type": "fun_call",
-        "identifier": "IDENTIFIER: C",
-        "args": [
-          {
-            "type": "number",
-            "number": "INT: 1"
-          }
-        ]
+        "type": "var_access",
+        "identifier": "identifier: a"
       }
     },
     {
       "type": "fun_call",
-      "identifier": "IDENTIFIER: print",
-      "args": [
-        {
-          "type": "str",
-          "value": "STRING: %i\\n"
-        },
-        {
-          "type": "object_read",
-          "object": {
-            "type": "var_access",
-            "identifier": "IDENTIFIER: obj"
-          },
-          "key": "IDENTIFIER: num"
-        }
-      ]
-    },
-    {
-      "type": "fun_call",
-      "identifier": "IDENTIFIER: change",
-      "args": [
-        {
-          "type": "var_access",
-          "identifier": "IDENTIFIER: obj"
-        }
-      ]
-    },
-    {
-      "type": "fun_call",
-      "identifier": "IDENTIFIER: print",
-      "args": [
-        {
-          "type": "str",
-          "value": "STRING: %i"
-        },
-        {
-          "type": "object_read",
-          "object": {
-            "type": "var_access",
-            "identifier": "IDENTIFIER: obj"
-          },
-          "key": "IDENTIFIER: num"
-        }
-      ]
+      "identifier": "identifier: b",
+      "args": []
     }
   ]
 }
