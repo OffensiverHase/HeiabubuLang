@@ -13,6 +13,11 @@ class Analyser:
         self.funcs: dict[str, Fun] = {}
         self.structs: dict[str, Struct] = {}
         self.current_fun: Fun = Fun(f'load_{ctx.file}', 0, [], 'null')
+        self.builtins = {
+            'print': 'int',
+            'len': 'int',
+            'getchar': 'str'
+        }
 
     def check(self, node: Node) -> str | None:
         method = getattr(self, 'check' + node.__class__.__name__, self.check_unknown_node)
@@ -160,6 +165,21 @@ class Analyser:
         self.env = self.env.parent
 
     def checkFunCallNode(self, node: FunCallNode) -> str:
+        if node.identifier.value in self.builtins:
+            return self.builtins[node.identifier.value]
+        if node.identifier.value in self.structs:
+            fun_helper = self.funcs[f'{node.identifier.value}:create']
+            if fun_helper.argc != len(node.args) + 1:
+                self.err(TypeError,
+                         f'Function {fun_helper.name} expected {fun_helper.argc} arguments, got {len(node.args)}',
+                         node.pos)
+            for i, arg in enumerate(node.args):
+                arg_type = self.check(arg)
+                if arg_type != fun_helper.arg_types[i + 1]:
+                    self.err(TypeError,
+                             f'Function {fun_helper.name} expected {fun_helper.arg_types[i]} for the {i}th element, found {arg_type}',
+                             arg.pos)
+            return node.identifier.value
         if node.identifier.value not in self.funcs:
             self.err(NoSuchVarError, f'Function {node.identifier.value} is not defined in the current scope', node.pos)
         fun_helper = self.funcs[node.identifier.value]
@@ -177,15 +197,19 @@ class Analyser:
     def checkFunDefNode(self, node: FunDefNode) -> None:
         self.env = Env(self.env)
         self.context = Context(self.context, node.identifier.value, self.context.file, self.context.file_text)
+        prev_fun = self.current_fun
 
         for i, arg in enumerate(node.args):
             self.env.define(arg.value, node.arg_types[i].value)
-        self.check(node.body)
         fun_helper = Fun(node.identifier.value, len(node.arg_types), [arg_type.value for arg_type in node.arg_types],
                          node.return_type.value)
+
         self.current_fun = fun_helper
         self.funcs[node.identifier.value] = fun_helper
 
+        self.check(node.body)
+
+        self.current_fun = prev_fun
         self.context = self.context.parent
         self.env = self.env.parent
 
@@ -220,8 +244,8 @@ class Analyser:
 
     def checkStructDefNode(self, node: StructDefNode) -> None:
         fields: dict[str, str] = {}
-        for name, typ in node.values:
-            fields[name.value] = typ.value
+        for name in node.values:
+            fields[name.value] = node.values[name].value
         struct_helper = Struct(node.identifier.value, fields)
         self.structs[struct_helper.name] = struct_helper
         for fun in node.functions:

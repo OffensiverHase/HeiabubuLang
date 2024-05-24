@@ -1,6 +1,17 @@
 main:
- keyword: FUN identifier: a ( ) -> type: int : 
- keyword: RETURN identifier: print ( string: hello ) 
+ keyword: CLASS identifier: C { 
+ identifier: num : type: int 
+ keyword: FUN identifier: a ( ) : 
+ identifier: self . identifier: num <- int: 10 
  
- identifier: b <- identifier: a 
- identifier: b ( ) end of file
+ keyword: FUN identifier: create ( identifier: num : type: int ) : 
+ identifier: self . identifier: num <- identifier: num 
+ } 
+ 
+ keyword: FUN identifier: change ( identifier: c : identifier: C ) : 
+ identifier: c . identifier: num <- identifier: c . identifier: num + int: 1 
+ 
+ identifier: obj <- identifier: C ( int: 1 ) 
+ identifier: print ( string: %i\n , identifier: obj . identifier: num ) 
+ identifier: change ( identifier: obj ) 
+ identifier: print ( string: %i , identifier: obj . identifier: num ) end of file

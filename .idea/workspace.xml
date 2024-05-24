@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="bfe04db2-d8d8-4286-a2bd-6d3eaa2f1670" name="Changes" comment="implement 'create' method">
+    <list default="true" id="bfe04db2-d8d8-4286-a2bd-6d3eaa2f1670" name="Changes" comment="add Semantic Analyser">
       <change afterPath="$PROJECT_DIR$/Semantic.py" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/debug/main.tokens" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
@@ -529,7 +529,15 @@
       <option name="project" value="LOCAL" />
       <updated>1716492580426</updated>
     </task>
-    <option name="localTasksCounter" value="39" />
+    <task id="LOCAL-00039" summary="add Semantic Analyser">
+      <option name="closed" value="true" />
+      <created>1716547071486</created>
+      <option name="number" value="00039" />
+      <option name="presentableId" value="LOCAL-00039" />
+      <option name="project" value="LOCAL" />
+      <updated>1716547071486</updated>
+    </task>
+    <option name="localTasksCounter" value="40" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -549,7 +557,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
-    <MESSAGE value="add printf function" />
     <MESSAGE value="add static compiling" />
     <MESSAGE value="Add Modulus + parser bin_op refactor" />
     <MESSAGE value="ass pass" />
@@ -574,7 +581,8 @@
     <MESSAGE value="error printing" />
     <MESSAGE value="implement overloading" />
     <MESSAGE value="implement 'create' method" />
-    <option name="LAST_COMMIT_MESSAGE" value="implement 'create' method" />
+    <MESSAGE value="add Semantic Analyser" />
+    <option name="LAST_COMMIT_MESSAGE" value="add Semantic Analyser" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -586,7 +594,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/Shell.py</url>
-          <line>130</line>
+          <line>137</line>
           <option name="timeStamp" value="176" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -596,28 +604,43 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/IrBuilder.py</url>
-          <line>768</line>
+          <line>772</line>
           <option name="timeStamp" value="256" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/IrBuilder.py</url>
-          <line>593</line>
+          <line>597</line>
           <option name="timeStamp" value="316" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/IrBuilder.py</url>
-          <line>803</line>
+          <line>807</line>
           <option name="timeStamp" value="318" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/IrBuilder.py</url>
-          <line>605</line>
+          <line>609</line>
           <option name="timeStamp" value="327" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/IrBuilder.py</url>
-          <line>267</line>
+          <line>268</line>
           <option name="timeStamp" value="336" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/Semantic.py</url>
+          <line>278</line>
+          <option name="timeStamp" value="337" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/Semantic.py</url>
+          <line>169</line>
+          <option name="timeStamp" value="342" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/Semantic.py</url>
+          <line>189</line>
+          <option name="timeStamp" value="343" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
