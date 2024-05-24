@@ -104,7 +104,7 @@ class Parser:
                 return VarAccessNode(token)
             case TT.LPAREN:
                 self.advance()
-                expression = self.statement()
+                expression = self.expression()
                 if self.current_token.type == TT.RPAREN:
                     self.advance()
                     return expression
@@ -134,27 +134,6 @@ class Parser:
                         return self.err(f"Expected ']' or ',', got {self.current_token}")
                     self.advance()
                 return ListNode(lst)
-            case TT.KEYWORD:
-                match self.current_token.value:
-                    case 'IF':
-                        self.advance()
-                        bool_expr = self.expression()
-                        if isinstance(bool_expr, Error):
-                            return bool_expr
-                        if_expr = self.body_expr()
-                        if isinstance(if_expr, Error):
-                            return if_expr
-                        else_expr: Node | None | Error = None
-                        if self.current_token.type == TT.NEWLINE and self.peek().value == 'ELSE':
-                            self.advance()
-                        if self.current_token.value == 'ELSE':
-                            self.advance()
-                            else_expr = self.body_expr()
-                        if isinstance(else_expr, Error):
-                            return else_expr
-                        return IfNode(bool_expr, if_expr, else_expr)
-                    case _:
-                        return self.err(f'Expected if, got {self.current_token}')
             case _:
                 return self.err(f'Expected identifier, literal or if, got {self.current_token}')
 
@@ -165,7 +144,7 @@ class Parser:
         if self.current_token.type == TT.LSQUARE:
             operator = Token(TT.GET, None, self.current_token.pos)
             self.advance()
-            right = self.arithm_expr()
+            right = self.expression()
             if isinstance(right, Error):
                 return right
             if self.current_token.type != TT.RSQUARE:
@@ -174,7 +153,7 @@ class Parser:
             left = BinOpNode(left, operator, right)
             if self.current_token.type == TT.ASSIGN:
                 self.advance()
-                right = self.atom()
+                right = self.expression()
                 if isinstance(right, Error):
                     return right
                 list_node = left.left
@@ -183,7 +162,7 @@ class Parser:
         while self.current_token.type == TT.POW:
             operator = self.current_token
             self.advance()
-            right = self.factor()
+            right = self.atom()
             if isinstance(right, Error):
                 return right
             left = BinOpNode(left, operator, right)
@@ -193,7 +172,7 @@ class Parser:
         if self.current_token.type == TT.PLUS or self.current_token.type == TT.MINUS:
             unary = self.current_token
             self.advance()
-            right = self.power()
+            right = self.factor()
             if isinstance(right, Error):
                 return right
             return UnaryOpNode(unary, right)
@@ -229,6 +208,23 @@ class Parser:
         token = self.current_token
         if token.type == TT.KEYWORD:
             match token.value:
+                case 'IF':
+                    self.advance()
+                    bool_expr = self.expression()
+                    if isinstance(bool_expr, Error):
+                        return bool_expr
+                    if_expr = self.body_expr()
+                    if isinstance(if_expr, Error):
+                        return if_expr
+                    else_expr: Node | None | Error = None
+                    if self.current_token.type == TT.NEWLINE and self.peek().value == 'ELSE':
+                        self.advance()
+                    if self.current_token.value == 'ELSE':
+                        self.advance()
+                        else_expr = self.body_expr()
+                    if isinstance(else_expr, Error):
+                        return else_expr
+                    return IfNode(bool_expr, if_expr, else_expr)
                 case 'WHILE':
                     self.advance()
                     bool_expr = self.expression()
@@ -466,7 +462,7 @@ class Parser:
                         return self.err(f"Expected '<-', got {self.current_token}")
                 self.advance()  # past the <-
 
-                expr = self.statement()
+                expr = self.expression()
                 if isinstance(expr, Error):
                     return expr
                 return VarAssignNode(var_name, type_token, expr)
@@ -474,11 +470,11 @@ class Parser:
 
     def statements(self) -> Node | Error:
         self.ignore_newlines()
-        expressions: List[Node] = []
+        statements: List[Node] = []
         expr = self.statement()
         if isinstance(expr, Error):
             return expr
-        expressions.append(expr)
+        statements.append(expr)
 
         while self.current_token.type == TT.NEWLINE:
             self.ignore_newlines()
@@ -489,8 +485,8 @@ class Parser:
             expr = self.statement()
             if isinstance(expr, Error):
                 return expr
-            expressions.append(expr)
-        return StatementsNode(expressions)
+            statements.append(expr)
+        return StatementsNode(statements)
 
     def ignore_newlines(self):
         while self.current_token.type == TT.NEWLINE:
