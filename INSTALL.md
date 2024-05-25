@@ -1,3 +1,3 @@
 # Installation #
 ## Pre built executable ##
-## Builing from source ##
+## Building from source ##
