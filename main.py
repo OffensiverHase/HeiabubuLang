@@ -1,14 +1,17 @@
 import os
-import sys
+import platform
 
-from Shell import start
+from Driver import start
+
+"""the main entry for Heiabubu, kind of useless though"""
 
 
-def main():
-    if sys.platform == 'win32':
+def main() -> int:
+    if platform.system() == 'Windows':
         os.system('color')
-    start()
+    return start()
 
 
 if __name__ == '__main__':
-    main()
+    code = main()
+    exit(code)

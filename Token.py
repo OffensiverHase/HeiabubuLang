@@ -5,6 +5,7 @@ from typing import Any
 
 
 class Position:
+    """A class representing the exact Position of a token for error logging"""
     def __init__(self, index: int, line: int, column: int, length: int) -> None:
         self.index = index
         self.line = line
@@ -19,10 +20,12 @@ class Position:
             self.column = 0
 
     def copy(self) -> Position:
+        """Has to always be called, when giving into token objects in the Lexer, else further advances will also affect this position, invalidating data"""
         return Position(self.index, self.line, self.column, self.len)
 
 
 class Token:
+    """Tokens representing the smallest possible units a program is made of"""
     def __init__(self, token_type: TT, value: Any | None, pos: Position):
         self.type = token_type
         self.value = value
@@ -36,6 +39,7 @@ class Token:
 
 
 class TT(Enum):
+    """Enum for Token types mapping name to representation"""
     keywords = ['VAR', 'IF', 'THEN', 'ELSE', 'FOR', 'STEP', 'WHILE', 'FUN', 'RETURN', 'BREAK', 'CONTINUE', 'CLASS', 'PASS', 'IMPORT']
     INT = 'int'
     FLOAT = 'float'

@@ -14,4 +14,5 @@ main:
  identifier: obj <- identifier: C ( int: 1 ) 
  identifier: print ( string: %i\n , identifier: obj . identifier: num ) 
  identifier: change ( identifier: obj ) 
- identifier: print ( string: %i , identifier: obj . identifier: num ) end of file
+ identifier: print ( string: %i , identifier: obj . identifier: num ) 
+ keyword: RETURN end of file

@@ -6,8 +6,11 @@ from Token import Position
 
 from termcolor import colored
 
+"""Methods for global use, only used for error printing"""
+
 
 def fail(error: Error):
+    """Print the given error in red to stdout"""
     print()
     print(colored(str(error), 'red'))
     print(''
@@ -19,6 +22,7 @@ def fail(error: Error):
 
 
 def arrow_str(pos: Position, context: Context):
+    """Show an arrow under the Error, also print the three lines closest to the error"""
     if pos.line > 0:
         line_before = f'{(pos.line + 1) - 1}\t|\t{context.file_text.splitlines()[pos.line - 1]}'
         print(line_before)

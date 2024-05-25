@@ -7,6 +7,7 @@ from Token import Token, TT
 
 
 class Parser:
+    """Class for Syntactical Analysis, build the abstract syntax tree from a list of tokens"""
     def __init__(self, tokens: List[Token], context: Context):
         self.context = context
         self.tokens = tokens

@@ -1,5 +1,7 @@
 from llvmlite import ir
-from Shell import run_jit
+from Driver import run_jit
+
+"""For experimenting with llvm ir"""
 
 
 # <editor-fold desc="Setup">
@@ -26,5 +28,5 @@ builder.ret(int_type(0))
 # <editor-fold desc="Ending">
 print(module)
 
-run_jit(module)
+run_jit(module, 'test')
 # </editor-fold>

@@ -3,14 +3,17 @@ from typing import List
 
 from Token import Token, TT, Position
 
-
 class Node:
+    """Base class for Nodes representing the Nodes of the ast"""
+    def __int__(self):
+        raise AssertionError('Dont instantiate Node directly')
+
     def __repr__(self):
         return json.dumps(self.json(), indent=2)
 
     @property
     def pos(self) -> Position:
-        pass
+        raise AssertionError('Dont instantiate Node directly')
 
     def json(self) -> dict:
         pass

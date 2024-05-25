@@ -16,8 +16,11 @@ from Methods import fail
 from Parser import Parser
 from Semantic import Analyser
 
+"""The compiler Driver gluing all components together"""
 
-def start():
+
+def start() -> int:
+    """Collect the args and set the global variables to those values, then start the compilation"""
     args = parse_args()
     for arg in args.d:
         globals()[arg.upper() + '_DEBUG'] = True
@@ -28,18 +31,20 @@ def start():
     if args.o:
         globals()['OUTPUT'] = args.o
     else:
-        globals()['OUTPUT'] = args.file_path.replace('.tss', '.exe' if platform.system() == 'Windows' else '')
+        globals()['OUTPUT'] = args.file_path.replace('.hb', '.exe' if platform.system() == 'Windows' else '')
     global OPT
     OPT = args.no_opt
-    run(text, args.file_path)
+    return run(text, args.file_path)
 
 
 def parse_args() -> Namespace:
-    arg_parser = ArgumentParser(prog='Teness', description='LLVM implementation of a TenessScript compiler',
+    """Use argparse ArgumentParser to parse argv"""
+    arg_parser = ArgumentParser(prog='Heiabubu', description='LLVM implementation of a Heiabubu compiler',
                                 epilog='Exit Status:\n\tReturns 0 unless an error occurs')
 
-    arg_parser.add_argument('file_path', help='Path to your entry point Teness file. (e.g. main.tss)')
-    arg_parser.add_argument('-d', type=str, action='append', choices=['tokens', 'ast', 'ir', 'asm'], help='Dump')
+    arg_parser.add_argument('file_path', help='Path to your entry point Heiabubu file. (e.g. main.hb)')
+    arg_parser.add_argument('-d', type=str, action='append', choices=['tokens', 'ast', 'ir', 'asm'],
+                            help='Dump for debug info')
     arg_parser.add_argument('-o', type=str, help='The emitted output file. (e.g. main.exe)')
     arg_parser.add_argument('-no_opt', action='store_false', help='Turn off all optimisations')
     arg_parser.add_argument('-run', action='store_true',
@@ -47,16 +52,26 @@ def parse_args() -> Namespace:
     return arg_parser.parse_args()
 
 
-TOKENS_DEBUG = False
-AST_DEBUG = False
-IR_DEBUG = False
-ASM_DEBUG = False
-RUN = False
-OPT = True
-OUTPUT: str | None = None
+"""Global flags mostly for emitting debug info"""
+TOKENS_DEBUG = False  # emit OUTPUT.tokens
+AST_DEBUG = False  # emit OUTPUT.json
+IR_DEBUG = False  # emit OUTPUT.ll
+ASM_DEBUG = False  # emit OUTPUT.s
+RUN = False  # Run the code with JIT compilation, else create an executable
+OPT = True  # Optimise the code with llvm -03 level
+OUTPUT: str | None = None  # The name of the output files, specified with -o, default is file_path.exe on Windows, else file_path
 
 
-def run(text: str, file: str):
+def run(text: str, file: str) -> int:
+    """
+    Run the compiler in the following steps:
+        1. Lexer(text)      -> token[]
+        2. Parser(token[])  -> ast
+        3. Analyser(ast)    -> None
+        4. IrBuilder(ast)   -> ir_module
+        5. LLVM(ir_module)  -> object_file
+        6. gcc(object_file) -> executable
+    """
     file = file.split(os.sep)[-1]
     file, _ = os.path.splitext(file)
     ctx = Context(None, f'load_{file}', file, text)
@@ -64,7 +79,7 @@ def run(text: str, file: str):
     tokens = lexer.make_tokens()
     if isinstance(tokens, Error):
         fail(tokens)
-        return
+        return 1
     if TOKENS_DEBUG:
         with open(OUTPUT + '.tokens', 'w') as f:
             f.write(f'{file}:\n' + ' ' + ' '.join(map(str, tokens)))
@@ -72,7 +87,7 @@ def run(text: str, file: str):
     ast = parser.parse()
     if isinstance(ast, Error):
         fail(ast)
-        return
+        return 1
     if AST_DEBUG:
         with open(OUTPUT + '.json', 'w') as f:
             f.write(ast.__str__())
@@ -81,13 +96,13 @@ def run(text: str, file: str):
         analyser.check(ast)
     except Error as e:
         fail(e)
-        return
+        return 1
     builder = IrBuilder(ctx)
     try:
         builder.build(ast)
     except Error as e:
         fail(e)
-        return
+        return 1
     module = builder.module
     module.triple = llvm.get_default_triple()
     if IR_DEBUG:
@@ -99,9 +114,11 @@ def run(text: str, file: str):
         run_jit(module, file)
     else:
         cmp(module)
+    return 0
 
 
 def opt(module: llvmlite.ir.Module) -> llvm.ModuleRef:
+    """Optimise the llvmlite module if OPT, return llvm module"""
     module_ref = llvm.parse_assembly(module.__str__())
     if OPT:
         pmb = llvm.PassManagerBuilder()
@@ -113,6 +130,12 @@ def opt(module: llvmlite.ir.Module) -> llvm.ModuleRef:
 
 
 def cmp(module: llvmlite.ir.Module):
+    """
+    Compile the llvm module to an executable file in the following steps:
+        1. LLVM(module)     -> temp.o
+        2. gcc(temp.o)      -> executable
+        3. remove temp.o
+    """
     llvm.initialize()
     llvm.initialize_native_target()
     llvm.initialize_native_asmprinter()
@@ -143,6 +166,7 @@ def cmp(module: llvmlite.ir.Module):
 
 
 def run_jit(module: llvmlite.ir.Module, file: str):
+    """Run the llvm module via just in time compilation"""
     llvm.initialize()
     llvm.initialize_native_target()
     llvm.initialize_native_asmprinter()

@@ -1,3 +1,0 @@
-fun lst(elem1: int, elem2: int) -> list<int> {
-    return [elem1, elem2]
-}

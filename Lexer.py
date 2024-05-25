@@ -9,6 +9,7 @@ from Token import Position, Token, TT
 
 
 class Lexer:
+    """Class for Lexical Analysis, split the text into tokens"""
     def __init__(self, context: Context) -> None:
         self.context = context
         self.text = context.file_text
@@ -23,6 +24,7 @@ class Lexer:
         self.current_char = self.text[self.pos.index] if self.pos.index < len(self.text) else None
 
     def make_tokens(self) -> List[Token] | IllegalCharError:
+        """Split the whole text into tokens, ignore whitespaces, carriage returns and comments"""
         tokens: List[Token] = []
         while self.current_char:
             match self.current_char:
@@ -41,6 +43,7 @@ class Lexer:
                 case '\n':
                     tokens.append(Token(TT.NEWLINE, None, self.pos.copy()))
                     self._advance()
+
                 case ';':
                     tokens.append(Token(TT.NEWLINE, None, self.pos.copy()))
                     self._advance()

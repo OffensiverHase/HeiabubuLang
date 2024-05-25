@@ -14,3 +14,4 @@ obj <- C(1)
 print('%i\n', obj.num)
 change(obj)
 print('%i', obj.num)
+return

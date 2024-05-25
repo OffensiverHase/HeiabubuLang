@@ -3,6 +3,7 @@ from Token import Position
 
 
 class Error(Exception):
+    """Base class for all the Heiabubu errors, subclass of Exception, so that it can be raised"""
     def __init__(self, name: str, details: str, pos: Position | None, context: Context, stage: str):
         self.name = name
         self.details = details
@@ -37,15 +38,6 @@ class NoSuchVarError(Error):
         super().__init__("No such Variable", details, pos, context, stage)
 
 
-class CaughtError(Error):
-    def __init__(self, details: str, exception, pos: Position, context: Context, stage: str):
-        super().__init__("Caught Error", details, pos, context, stage)
-        self.exception = exception
-
-    def __str__(self):
-        return f'{self.name}: {self.details}, File {self.context.file}, line {self.pos.line + 1}, pos {self.pos.column}\nError is:\n{self.exception}'
-
-
 class TypeError(Error):
     def __init__(self, details: str, pos: Position, context: Context, stage: str):
         super().__init__("Type Error", details, pos, context, stage)
@@ -54,12 +46,6 @@ class TypeError(Error):
 class RuntimeError(Error):
     def __init__(self, details: str, pos: Position, context: Context, stage: str):
         super().__init__("Runtime Exception", details, pos, context, stage)
-
-
-class IOError(Error):
-    def __init__(self, details: str, pos: Position, context: Context, stage: str):
-        super().__init__("Input-Output Exception", details, pos, context, stage)
-
 
 class DuplicateNameError(Error):
     def __init__(self, details: str, pos: Position, context: Context, stage: str):

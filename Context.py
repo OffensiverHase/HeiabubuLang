@@ -2,6 +2,7 @@ from __future__ import annotations
 
 
 class Context:
+    """A global Context class for Error logging"""
     def __init__(self, parent: Context | None, name: str, file: str, file_text: str):
         self.parent = parent
         self.name = name
@@ -10,4 +11,3 @@ class Context:
 
     def __str__(self):
         return f'\tsrc --> {self.file}\n\tfun -> {self.name}\n'
-

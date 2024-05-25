@@ -7,6 +7,7 @@ from Node import *
 
 
 class Analyser:
+    """Class for Sematic Analysis, only checks for types"""
     def __init__(self, ctx: Context):
         self.context = ctx
         self.env = Env()
@@ -20,6 +21,7 @@ class Analyser:
         }
 
     def check(self, node: Node) -> str | None:
+        """Dynamic visit method, returns the type of value for expressions and None for statements"""
         method = getattr(self, 'check' + node.__class__.__name__, self.check_unknown_node)
         return method(node)
 
@@ -297,6 +299,7 @@ class Analyser:
 
 
 class Env:
+    """variable table used by the Analyser. name: str -> type: str, implementation wise the same as IrBuilder's Environment"""
     def __init__(self, parent: Env | None = None):
         self.parent = parent
         self.records: dict[str, str] = {'true': 'bool', 'false': 'bool'} if not self.parent else {}
@@ -314,14 +317,16 @@ class Env:
 
 
 class Fun:
-    def __init__(self, name: str, argc: int, argt: list[str], ret_type: str):
+    """Helper class for function argument type and length checking"""
+    def __init__(self, name: str, argc: int, arg_types: list[str], ret_type: str):
         self.name = name
         self.argc = argc
-        self.arg_types = argt
+        self.arg_types = arg_types
         self.ret_type = ret_type
 
 
 class Struct:
+    """Helper class for class filed type and length checking"""
     def __init__(self, name: str, fields: dict[str, str]):
         self.name = name
         self.fields = fields

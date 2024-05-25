@@ -18,6 +18,8 @@ from Token import TT
 
 
 class IrBuilder:
+    """The most important class, the code generator. Creates the llvm ir from an abstract syntax tree"""
+
     def __init__(self, context: Context):
         self.context = context
 
@@ -49,6 +51,7 @@ class IrBuilder:
         self.init_builtins()
 
     def get_type(self, name: str, pos: Position) -> ir.Type:
+        """Mapping from heiabubu types like int to llvm types like i32"""
         if name.startswith('list'):
             list_type = name.removeprefix('list:')
             list_type = self.get_type(list_type, pos)
@@ -65,10 +68,12 @@ class IrBuilder:
             return Type
 
     def increment_counter(self) -> int:
+        """A counter for unique string constant names and basic blocks"""
         self.counter += 1
         return self.counter
 
     def init_builtins(self):
+        """Initialise Heiabubu builtins like true, false and print"""
         def init_bool() -> tuple[GlobalVariable, GlobalVariable]:
             true_var = ir.GlobalVariable(self.module, self.bool_type, 'true')
             true_var.initializer = self.bool_type(1)
@@ -91,8 +96,7 @@ class IrBuilder:
             malloc_ty = ir.FunctionType(self.str_type, [self.int_type], var_arg=False)
             malloc_func = ir.Function(self.module, malloc_ty, name="malloc")
 
-            strcpy_ty = ir.FunctionType(self.str_type,
-                                        [self.str_type, self.str_type], var_arg=False)
+            strcpy_ty = ir.FunctionType(self.str_type, [self.str_type, self.str_type], var_arg=False)
             strcpy_func = ir.Function(self.module, strcpy_ty, name="strcpy")
 
             strcmp_ty = ir.FunctionType(self.int_type, [self.str_type, self.str_type], var_arg=False)
@@ -112,6 +116,7 @@ class IrBuilder:
         init_c_std_library()
 
     def build(self, node: Node):
+        """Start building the llvm ir for a file, by adding a load_filename function"""
         fnty = ir.FunctionType(self.int_type, [])
         fun = ir.Function(self.module, fnty, f'load_{self.context.file}')
         block = fun.append_basic_block(f'load_{self.context.file}_entry')
@@ -129,6 +134,7 @@ class IrBuilder:
                 self.builder.position_at_end(prev_block)
 
     def visit(self, node: Node) -> tuple[ir.Value, ir.Type] | None:
+        """Dynamic visit method, returns a tuple of value and type for expressions and None for statements"""
         method = getattr(self, 'visit' + node.__class__.__name__, self.visit_unknown_node)
         return method(node)
 
@@ -169,7 +175,8 @@ class IrBuilder:
             self.builder = ir.IRBuilder(block)
             self.env = Environment(parent=self.env, name=name)
 
-            param_name = str([t.value.lower() for t in node.arg_types]).replace("'", '').removeprefix('[').removesuffix(']')
+            param_name = str([t.value.lower() for t in node.arg_types]).replace("'", '').removeprefix('[').removesuffix(
+                ']')
             self.context = Context(self.context, f'{name}({param_name})', self.context.file, self.context.file_text)
 
             params_ptr: list[ir.AllocaInstr] = []
@@ -268,10 +275,13 @@ class IrBuilder:
 
         value, Type = self.visit(value_node)
 
-        # todo checking
-        # if value_type != Type and value_type is not None and (
-        #         (value_type != Type.pointee) if Type.is_pointer else True):
-        #     self.err(TypeError, f'Expected {value_type}, got {Type}', node.value.pos)
+        if value_type is None:
+            pass
+        elif self.is_str(value_type):
+            pass
+        elif value_type != Type and value_type is not None and (
+                (value_type != Type.pointee) if Type.is_pointer else True):
+            self.err(TypeError, f'Expected {value_type}, got {Type}', node.value.pos)
 
         if self.env.lookup(name) == (None, None):
 
@@ -526,7 +536,7 @@ class IrBuilder:
             print(colored(f'Already imported {file_path} globally!', 'red'))
             return
 
-        with open(os.path.abspath(f'{file_path}.tss'), 'r') as f:  # todo
+        with open(os.path.abspath(f'{file_path}.hb'), 'r') as f:  # todo
             file_code = f.read()
 
         ctx = Context(self.context, f'load_{file_path}()', file_path, file_code)
@@ -747,7 +757,7 @@ class IrBuilder:
         return value, Type
 
     def list_int_bin_op(self, left_value: ir.Value, right_value: ir.Value, operator: Token, bitcast: bool) -> tuple[
-        ir.Value, ir.Type]:
+            ir.Value, ir.Type]:
         value, Type = None, None
         match operator.type:
             case TT.GET:
@@ -769,8 +779,8 @@ class IrBuilder:
                 list_ptr2 = self.builder.gep(right_value,
                                              [self.int_type(0)] if isinstance(left_value.type, ir.ArrayType) else [
                                                  self.int_type(0), self.int_type(0)], name="list_ptr2")
-                self.err(RuntimeError, 'Adding two lists is not implemented yet', operator.pos)
-                # len1 = self.builder.call()  # todo concat lists!
+                self.err(RuntimeError, 'Adding two lists is not implemented yet',
+                         operator.pos)  # len1 = self.builder.call()  # todo concat lists!
 
     def str_bin_op(self, left_value: ir.Value, right_value: ir.Value, operator: Token) -> tuple[ir.Value, ir.Type]:
         value, Type = None, None
@@ -790,15 +800,13 @@ class IrBuilder:
                 concat_ptr = self.builder.call(self.module.globals.get("malloc"), [total_length], name="concat_ptr")
 
                 # Copy the first string (left_value) into the allocated memory
-                self.builder.call(self.module.globals.get("strcpy"), [concat_ptr, str_ptr1],
-                                  name="copy_ptr1")
+                self.builder.call(self.module.globals.get("strcpy"), [concat_ptr, str_ptr1], name="copy_ptr1")
 
                 # Calculate the offset for appending the second string (right_value)
                 offset_ptr2 = self.builder.gep(concat_ptr, [len1], name="offset_ptr2")
 
                 # Copy the second string (right_value) into the allocated memory at the offset position
-                self.builder.call(self.module.globals.get("strcpy"), [offset_ptr2, str_ptr2],
-                                  name="copy_ptr1")
+                self.builder.call(self.module.globals.get("strcpy"), [offset_ptr2, str_ptr2], name="copy_ptr1")
 
                 value = concat_ptr
 
@@ -848,6 +856,7 @@ class IrBuilder:
         return value, Type
 
     def printf(self, params: list[ir.Value], return_type: ir.Type) -> ir.CallInstr:
+        """Invoke the standard c printf function, do some casting for arg types to match"""
         func, _ = self.env.lookup('printf')
         c_str = self.allocator.alloca(return_type, name='c_str')
         self.builder._anchor += 1
@@ -867,6 +876,7 @@ class IrBuilder:
             return self.builder.call(func, [fmt_arg, *rest_params], name='printf.ret')
 
     def getchar(self) -> ir.Value:
+        """Invoke the standard c getchar function, convert the returned integer to a string afterward"""
         int_value = self.builder.call(self.module.globals.get('getchar'), [], name='int_getchar.ret')
         byte_value = self.builder.trunc(int_value, self.byte_type, name='getchar_trunc')
         ptr = self.allocator.alloca(ir.ArrayType(self.byte_type, 2), name='getchar_str')
@@ -878,6 +888,7 @@ class IrBuilder:
         return ptr
 
     def is_str(self, typ: ir.Type) -> bool:
+        """Return if a type is a Heiabubu string"""
         if typ == self.str_type:
             return True
         if isinstance(typ, ir.ArrayType):
@@ -894,6 +905,7 @@ class IrBuilder:
         return False
 
     def is_list(self, typ: ir.Type) -> bool:
+        """Return if a type is a Heiabubu list, probably not working properly"""
         if self.is_str(typ):
             return False
         if isinstance(typ, ir.ArrayType):
@@ -909,12 +921,17 @@ class IrBuilder:
 
 
 class Struct:
+    """Simply a helper for mapping field names to their index"""
     def __init__(self, name: str, fields: list[str]):
         self.name = name
         self.field_indices = dict((field, idx) for idx, field in enumerate(fields))
 
 
 class Allocator:
+    """
+    Helper class for alloca instructions to be at the top of the current function
+    Always call `self.builder._anchor += 1` because the alloca instructions are done by a separate builder
+    """
     def __init__(self):
         self.alloca_builder = ir.IRBuilder()
         self.node = AllocNode()
@@ -922,6 +939,11 @@ class Allocator:
         self.instr: ir.Instruction | None = None
 
     def set_block(self, block: ir.Block) -> Allocator:
+        """
+        only use for Context manager protocol!
+        with self.allocator.set_block(block):
+            # do something
+        """
         self.node = AllocNode(self.node, block)
         self.block = block
         self.instr = None
@@ -954,6 +976,7 @@ class Allocator:
 
 
 class AllocNode:
+    """A node building a linked Stack, for knowing the last block of the Allocator"""
     def __init__(self, last_node: AllocNode | None = None, block: ir.Block | None = None,
                  instr: ir.Instruction | None = None):
         self.last_node = last_node
