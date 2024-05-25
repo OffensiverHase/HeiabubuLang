@@ -14,6 +14,6 @@ Heia bubu is still in pre release and not very safe to use yet. It's also in a s
  - [Building from source](https://github.com/OffensiverHase/HeiabubuLang/blob/master/INSTALL.md#building-from-source)
   
 ## Resources ##
- - [Examples](https://github.com/OffensiverHase/HeiabubuLang/blob/master/docs/examples)
+ - [Examples](https://github.com/OffensiverHase/HeiabubuLang/blob/master/examples)
  - [Grammar](https://github.com/OffensiverHase/HeiabubuLang/blob/master/docs/grammar.md)
  - [Documentation](https://github.com/OffensiverHase/HeiabubuLang/blob/master/docs/heiabubulang.md)
