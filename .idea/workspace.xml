@@ -4,25 +4,29 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="bfe04db2-d8d8-4286-a2bd-6d3eaa2f1670" name="Changes" comment="add docstrings">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Context.py" beforeDir="false" afterPath="$PROJECT_DIR$/Context.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Env.py" beforeDir="false" afterPath="$PROJECT_DIR$/Env.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Error.py" beforeDir="false" afterPath="$PROJECT_DIR$/Error.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/IrBuilder.py" beforeDir="false" afterPath="$PROJECT_DIR$/IrBuilder.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Lexer.py" beforeDir="false" afterPath="$PROJECT_DIR$/Lexer.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Methods.py" beforeDir="false" afterPath="$PROJECT_DIR$/Methods.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Node.py" beforeDir="false" afterPath="$PROJECT_DIR$/Node.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Parser.py" beforeDir="false" afterPath="$PROJECT_DIR$/Parser.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Semantic.py" beforeDir="false" afterPath="$PROJECT_DIR$/Semantic.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Shell.py" beforeDir="false" afterPath="$PROJECT_DIR$/Driver.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Token.py" beforeDir="false" afterPath="$PROJECT_DIR$/Token.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/debug/main.json" beforeDir="false" afterPath="$PROJECT_DIR$/debug/main.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/debug/main.tokens" beforeDir="false" afterPath="$PROJECT_DIR$/debug/main.tokens" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/debug/main.tss" beforeDir="false" afterPath="$PROJECT_DIR$/debug/main.hb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lists.tss" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests.py" afterDir="false" />
+    <list default="true" id="bfe04db2-d8d8-4286-a2bd-6d3eaa2f1670" name="Changes" comment="rename to Heiabubu">
+      <change afterPath="$PROJECT_DIR$/../Heiabubu/Heiabubu.spec" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Heiabubu/benchmark/fib.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Heiabubu/benchmark/fib.hb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Heiabubu/benchmark/fib.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Heiabubu/benchmark/fib_cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Heiabubu/benchmark/fib_hb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Heiabubu/build/Heiabubu/Analysis-00.toc" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Heiabubu/build/Heiabubu/EXE-00.toc" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Heiabubu/build/Heiabubu/Heiabubu.pkg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Heiabubu/build/Heiabubu/PKG-00.toc" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Heiabubu/build/Heiabubu/PYZ-00.pyz" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Heiabubu/build/Heiabubu/PYZ-00.toc" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Heiabubu/build/Heiabubu/base_library.zip" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Heiabubu/build/Heiabubu/warn-Heiabubu.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Heiabubu/build/Heiabubu/xref-Heiabubu.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Heiabubu/dist/Heiabubu" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Heiabubu/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../Heiabubu/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Heiabubu/Driver.py" beforeDir="false" afterPath="$PROJECT_DIR$/../Heiabubu/Driver.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Heiabubu/Semantic.py" beforeDir="false" afterPath="$PROJECT_DIR$/../Heiabubu/Semantic.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Heiabubu/debug/main" beforeDir="false" afterPath="$PROJECT_DIR$/../Heiabubu/debug/main" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Heiabubu/debug/main.ll" beforeDir="false" afterPath="$PROJECT_DIR$/../Heiabubu/debug/main.ll" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Heiabubu/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/../Heiabubu/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -37,7 +41,7 @@
     </option>
   </component>
   <component name="Git.Settings">
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../Heiabubu" />
   </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
@@ -75,7 +79,7 @@
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "git-widget-placeholder": "master",
-    "last_opened_file_path": "/home/martin/Coding/PycharmProjects/TenessPy/debug",
+    "last_opened_file_path": "/home/martin/Coding/PycharmProjects/Heiabubu",
     "run.code.analysis.last.selected.profile": "aDefault",
     "settings.editor.selected.configurable": "preferences.pluginManager"
   }
@@ -89,7 +93,7 @@
       <recent name="$PROJECT_DIR$/debug" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.tests">
+  <component name="RunManager" selected="Python.run_opt">
     <configuration default="true" type="PythonConfigurationType" factoryName="Python">
       <module name="Heiabubu" />
       <option name="ENV_FILES" value="" />
@@ -122,11 +126,11 @@
       </envs>
       <option name="SDK_HOME" value="" />
       <option name="SDK_NAME" value="$USER_HOME$/miniconda3" />
-      <option name="WORKING_DIRECTORY" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/../Heiabubu" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="main.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/../Heiabubu/main.py" />
       <option name="PARAMETERS" value="debug/main.hb -d ir -no_opt" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -145,11 +149,11 @@
       </envs>
       <option name="SDK_HOME" value="" />
       <option name="SDK_NAME" value="$USER_HOME$/miniconda3" />
-      <option name="WORKING_DIRECTORY" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/../Heiabubu" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="main.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/../Heiabubu/main.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -168,11 +172,11 @@
       </envs>
       <option name="SDK_HOME" value="" />
       <option name="SDK_NAME" value="$USER_HOME$/miniconda3" />
-      <option name="WORKING_DIRECTORY" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/../Heiabubu" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="main.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/../Heiabubu/main.py" />
       <option name="PARAMETERS" value="debug/main.hb -d tokens -d ir -d ast -no_opt -run" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -191,11 +195,11 @@
       </envs>
       <option name="SDK_HOME" value="" />
       <option name="SDK_NAME" value="$USER_HOME$/miniconda3" />
-      <option name="WORKING_DIRECTORY" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/../Heiabubu" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="main.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/../Heiabubu/main.py" />
       <option name="PARAMETERS" value="debug/main.hb -d ir -d ast -run" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -671,7 +675,23 @@
       <option name="project" value="LOCAL" />
       <updated>1716624846864</updated>
     </task>
-    <option name="localTasksCounter" value="43" />
+    <task id="LOCAL-00043" summary="rename to Heiabubu">
+      <option name="closed" value="true" />
+      <created>1716624968244</created>
+      <option name="number" value="00043" />
+      <option name="presentableId" value="LOCAL-00043" />
+      <option name="project" value="LOCAL" />
+      <updated>1716624968244</updated>
+    </task>
+    <task id="LOCAL-00044" summary="rename to Heiabubu">
+      <option name="closed" value="true" />
+      <created>1716624978048</created>
+      <option name="number" value="00044" />
+      <option name="presentableId" value="LOCAL-00044" />
+      <option name="project" value="LOCAL" />
+      <updated>1716624978048</updated>
+    </task>
+    <option name="localTasksCounter" value="45" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -691,7 +711,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
-    <MESSAGE value="ass pass" />
     <MESSAGE value="bug fixes" />
     <MESSAGE value="add for and while loops" />
     <MESSAGE value="add imports" />
@@ -716,7 +735,8 @@
     <MESSAGE value="add Semantic Analyser" />
     <MESSAGE value="add grammar.md" />
     <MESSAGE value="add docstrings" />
-    <option name="LAST_COMMIT_MESSAGE" value="add docstrings" />
+    <MESSAGE value="rename to Heiabubu" />
+    <option name="LAST_COMMIT_MESSAGE" value="rename to Heiabubu" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -727,19 +747,24 @@
           <option name="timeStamp" value="172" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/Driver.py</url>
+          <url>file://$PROJECT_DIR$/../Heiabubu/Driver.py</url>
           <line>137</line>
           <option name="timeStamp" value="176" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/Parser.py</url>
+          <url>file://$PROJECT_DIR$/../Heiabubu/Parser.py</url>
           <line>520</line>
           <option name="timeStamp" value="184" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/IrBuilder.py</url>
+          <url>file://$PROJECT_DIR$/../Heiabubu/IrBuilder.py</url>
           <line>782</line>
           <option name="timeStamp" value="256" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/../Heiabubu/Driver.py</url>
+          <line>132</line>
+          <option name="timeStamp" value="346" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>

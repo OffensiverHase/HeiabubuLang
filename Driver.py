@@ -1,3 +1,4 @@
+import builtins
 import os
 import platform
 import subprocess
@@ -9,7 +10,7 @@ import llvmlite.ir
 from termcolor import colored
 
 from Context import Context
-from Error import Error
+from Error import Error, RuntimeError
 from IrBuilder import IrBuilder
 from Lexer import Lexer
 from Methods import fail
@@ -26,8 +27,12 @@ def start() -> int:
         globals()[arg.upper() + '_DEBUG'] = True
     if args.run:
         globals()['RUN'] = True
-    with open(args.file_path) as f:
-        text = f.read()
+    try:
+        with open(args.file_path) as f:
+            text = f.read()
+    except FileNotFoundError:
+        print(colored(f'File {args.file_path} not found!', 'red'))
+        return 1
     if args.o:
         globals()['OUTPUT'] = args.o
     else:
@@ -44,7 +49,7 @@ def parse_args() -> Namespace:
 
     arg_parser.add_argument('file_path', help='Path to your entry point Heiabubu file. (e.g. main.hb)')
     arg_parser.add_argument('-d', type=str, action='append', choices=['tokens', 'ast', 'ir', 'asm'],
-                            help='Dump for debug info')
+                            help='Dump for debug info', default=[])
     arg_parser.add_argument('-o', type=str, help='The emitted output file. (e.g. main.exe)')
     arg_parser.add_argument('-no_opt', action='store_false', help='Turn off all optimisations')
     arg_parser.add_argument('-run', action='store_true',
@@ -109,6 +114,8 @@ def run(text: str, file: str) -> int:
         with open(OUTPUT + '.ll', 'w') as f:
             if OPT:
                 module = opt(module)
+                if module is None:
+                    return 1
             f.write(module.__str__())
     if RUN:
         run_jit(module, file)
@@ -117,9 +124,15 @@ def run(text: str, file: str) -> int:
     return 0
 
 
-def opt(module: llvmlite.ir.Module) -> llvm.ModuleRef:
+def opt(module: llvmlite.ir.Module) -> llvm.ModuleRef | None:
     """Optimise the llvmlite module if OPT, return llvm module"""
-    module_ref = llvm.parse_assembly(module.__str__())
+    try:
+        module_ref = llvm.parse_assembly(module.__str__())
+    except builtins.RuntimeError as e:
+        print(colored('Caught llvm runtime error:', 'red'))
+        print(colored(str(e), 'red'))
+        print(colored('please report this to github!', 'red'))
+        return None
     if OPT:
         pmb = llvm.PassManagerBuilder()
         pmb.opt_level = 3
@@ -142,6 +155,8 @@ def cmp(module: llvmlite.ir.Module):
 
     try:
         llvm_module = opt(module)
+        if llvm_module is None:
+            return
         llvm_module.verify()
     except Exception as e:
         print(e)
@@ -173,6 +188,8 @@ def run_jit(module: llvmlite.ir.Module, file: str):
 
     try:
         llvm_module = opt(module)
+        if llvm_module is None:
+            return
         llvm_module.verify()
     except Exception as e:
         print(e)

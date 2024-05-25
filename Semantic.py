@@ -13,7 +13,7 @@ class Analyser:
         self.env = Env()
         self.funcs: dict[str, Fun] = {}
         self.structs: dict[str, Struct] = {}
-        self.current_fun: Fun = Fun(f'load_{ctx.file}', 0, [], 'null')
+        self.current_fun: Fun = Fun(f'load_{ctx.file}', 0, [], 'int')
         self.builtins = {
             'print': 'int',
             'len': 'int',
