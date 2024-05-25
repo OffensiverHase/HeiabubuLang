@@ -12,7 +12,7 @@ Heia bubu is still in pre release and not very safe to use yet. It's also in a s
 ## Installation ##
  - [Pre built executable](https://github.com/OffensiverHase/HeiabubuLang/blob/master/INSTALL.md#pre-built-executable)
  - [Building from source](https://github.com/OffensiverHase/HeiabubuLang/blob/master/INSTALL.md#building-from-source)
- - 
+  
 ## Resources ##
  - [Examples](https://github.com/OffensiverHase/HeiabubuLang/blob/master/docs/examples)
  - [Grammar](https://github.com/OffensiverHase/HeiabubuLang/blob/master/docs/grammar.md)
