@@ -40,7 +40,6 @@ class Token:
 
 class TT(Enum):
     """Enum for Token types mapping name to representation"""
-    keywords = ['VAR', 'IF', 'THEN', 'ELSE', 'FOR', 'STEP', 'WHILE', 'FUN', 'RETURN', 'BREAK', 'CONTINUE', 'CLASS', 'PASS', 'IMPORT']
     INT = 'int'
     FLOAT = 'float'
     PLUS = '+'

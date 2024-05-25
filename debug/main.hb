@@ -1,17 +1,19 @@
-class C {
+Samar!
+
+kimjonun C {
     num: int
-    fun a():
+    siu a():
         self.num <- 10
 
-    fun create(num: int):
+    siu create(num: int):
         self.num <- num
 }
 
-fun change(c: C):
+siu change(c: C):
     c.num <- c.num + 1
 
 obj <- C(1)
 print('%i\n', obj.num)
 change(obj)
 print('%i', obj.num)
-return
+nasim

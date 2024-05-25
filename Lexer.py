@@ -10,6 +10,7 @@ from Token import Position, Token, TT
 
 class Lexer:
     """Class for Lexical Analysis, split the text into tokens"""
+
     def __init__(self, context: Context) -> None:
         self.context = context
         self.text = context.file_text
@@ -17,6 +18,8 @@ class Lexer:
         self.current_char: str | None = None
         self.escape_chars = dict(n='\n', t='\t')
         self.types = dict(INT='int', FLOAT='float', NULL='null', BOOL='bool', STR='str', BYTE='byte', LIST='list')
+        self.keywords = ['IF', 'ELSE', 'FOR', 'STEP', 'WHILE', 'FUN', 'RETURN', 'BREAK', 'CONTINUE', 'CLASS', 'PASS',
+                         'IMPORT']
         self._advance()
 
     def _advance(self) -> None:
@@ -153,7 +156,7 @@ class Lexer:
         if id_str.upper() in self.types:
             start_pos.len = self.pos.index - start_pos.index
             return Token(TT.TYPE, id_str, start_pos)
-        elif id_str.upper() in TT.keywords.value:
+        elif id_str.upper() in self.keywords:
             start_pos.len = self.pos.index - start_pos.index
             return Token(TT.KEYWORD, id_str.upper(), start_pos)
         else:
