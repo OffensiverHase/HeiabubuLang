@@ -125,11 +125,30 @@ for a <- 0 .. 10 step 2:
  - the same rules as on if, functions and `while` can be applied for a for body
 
 ### Break and Continue ###
-In loops you can use the `break` and the `continue` statement.
+In loops you can use the `break` or the `continue` statement.
 `break` will break out of the current loop and `continue` will continue with the next iteration.
 
     
 ## Functions ##
+You can declare functions with the `fun` keyword
+```python
+fun plus_one(number: int) -> int:
+    return number + 1
+    
+fun main() {
+    a <- 1
+    a <- plus_one(a)
+    print('Result is %i\n', a)
+}
+```
+ - function parameters are written within parameters
+ - each parameter has to have a type
+ - multiple parameters are seperated by commas `,`
+ - the return type of the function is specified after the function's parentheses, after an arrow `->`
+ - if the return type is omitted 'null' is used
+ - the body of a function uses the same rules as any other bodies
+ - heiabubu does not support first class or higher order functions
+
 ## Classes and Objects ##
 
 ## Operators ##
