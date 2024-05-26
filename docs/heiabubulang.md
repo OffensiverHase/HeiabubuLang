@@ -37,7 +37,7 @@ z: float <- 'hello'  # will fail compilation, because you cannot store a str to 
  - you can annotate variables with types `name: type <- value`
 
 Variables are deleted when the scope they were declared in is removed:
-```python
+```kotlin
 for i <- 0 .. 10 {
     sq <- i * i
     print('%i', sq)
