@@ -119,6 +119,10 @@ class Lexer:
                     tokens.append(Token(TT.RCURLY, None, self.pos.copy()))
                     self._advance()
 
+                case '%':
+                    tokens.append(Token(TT.MOD, None, self.pos.copy()))
+                    self._advance()
+
                 case '-':
                     tokens.append(self._make_minus_things())
 
