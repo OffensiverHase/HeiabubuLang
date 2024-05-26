@@ -6,18 +6,18 @@ This is archieved by omitting some runtime checks, what sadly makes programming 
 
 ### Hello world ###
 Here is a simple programm that prints `Hello, World!`:
-```kotlin
+```python
 fun main() {
     print('Hello, World!\n')
 }
 ```
 Since this function only consists of one statement this can be simplified:
-```kotlin
+```python
 fun main():
     print('Hello, World\n')
 ```
 When running the JIT compiler this can be simplified even more:
-```kotlin
+```python
 print('Hello, World!\n')
 ```
  - `fun` is used to declare a function
@@ -29,7 +29,7 @@ print('Hello, World!\n')
 
 ### Variables ###
 Just like in every other language variables are used to store data. Variables are always mutable.
-```kotlin
+```python
 x <- 5 
 y: int <- x * 4
 z: float <- 'hello'  # will fail compilation, because you cannot store a str to a float
@@ -39,7 +39,7 @@ z: float <- 'hello'  # will fail compilation, because you cannot store a str to 
  - you can annotate variables with types `name: type <- value`
 
 Variables are deleted when the scope they were declared in is removed:
-```kotlin
+```python
 for i <- 0 .. 10 {
     sq <- i * i
     print('%i\n', sq)
@@ -66,7 +66,7 @@ One really useful data structure is just a simple list or array.
 Heiabubu has still a very experimental approach to lists.
 You can't specify the size of a list, so it's best practise to initialise it with default values.
 Also Heiabubu has no index out of bounds error, so lists can lead to undefined behaviour sometimes
-```kotlin
+```python
 x <- []  # Not recommended, will not allocate any space for elements
 y <- [0,0,0,0]  # is better for a list with a size of 4
 x[0] <- 1  # Yet possible
@@ -80,7 +80,7 @@ Like other programming languages Heiabubu is capable of changing the control flo
 
 ### If ###
 `if` statements are used to execute a block of code bsed on a condition.
-```kotlin
+```python
 if 1 = 1:
     print('Your computer works just fine!\n')
 else {
@@ -96,7 +96,7 @@ else {
 
 ### While ###
 While is used to execuate a code block while a condition is `true`
-```kotlin
+```python
 a <- 0
 while a < 10 {
     print('a is %i\n', a)
@@ -111,12 +111,12 @@ while a < 10 {
 ### For ###
 For loops are used if you want to do a thing for a certain amount of times.
 The above example can be simplified as the following:
-```kotlin
+```python
 for a <- 0 .. 10:
     print('a is %i\n', a)
 ```
 you can also specify a step size.
-```kotlin
+```python
 for a <- 0 .. 10 step 2:
     print('a is %i\n', a)
 ```
