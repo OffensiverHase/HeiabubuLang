@@ -6,12 +6,14 @@ This is archieved by omitting some runtime checks, what sadly makes programming 
 
 ### Hello world ###
 Here is a simple programm that prints `Hello, World!`:
-```kotlin
-fun main() {
+```mojo
+fun main():
     print('Hello, World!')
-}
 ```
 When running the JIT compiler this can be simplified even more:
 ```python
-print('Hello, World!')`
+print('Hello, World!')
 ```
+ - `fun` is used to declare a function
+ - the `main()` function the entry point of your programm. If it's not there the JIT compiler will start at the top level
+ - 
