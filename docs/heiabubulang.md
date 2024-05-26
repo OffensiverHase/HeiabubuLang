@@ -262,4 +262,4 @@ If you want to write multiple statements in the same line, you can use a semicol
 
 
 
-[Jump to the top]()
+[Jump to the top](https://github.com/OffensiverHase/HeiabubuLang/blob/master/docs/heiabubulang.md#heiabubu)
