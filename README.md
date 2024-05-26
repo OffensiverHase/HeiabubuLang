@@ -10,6 +10,7 @@ Heia bubu is still in pre release and not very safe to use yet. It's also in a s
  - [ ] macOS (not planned due to lack of knowledge and technology)
 
 ## Installation ##
+ - [Graphical installer](https://github.com/OffensiverHase/HeiabubuLang/blob/master/INSTALL.md#graphical-installer)
  - [Pre built executable](https://github.com/OffensiverHase/HeiabubuLang/blob/master/INSTALL.md#pre-built-executable)
  - [Building from source](https://github.com/OffensiverHase/HeiabubuLang/blob/master/INSTALL.md#building-from-source)
   
