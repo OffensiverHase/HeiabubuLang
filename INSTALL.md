@@ -12,5 +12,5 @@ A graphical installer is work in progress and will be released here soon
 
 ## Building from source ##
  1. Clone or download the source for this repository
- 2. Create a new `Anaconda` or `Miniconda` Environement in the `HeiabubuLang` folder
+ 2. Create a new `Anaconda` or `Miniconda` Environement in the `HeiabubuLang` folder   
     `conda create --name heiabubu python=3.12.1`
