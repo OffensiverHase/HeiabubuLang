@@ -1,15 +1,15 @@
 fun fizzbuzz() {
     for i <- 1 .. 101 {
         if i % 3 = 0 & i % 5 = 0:
-            print('FizzBuzz')
+            print('FizzBuzz\n')
         else:
             if i % 3 = 0:
-                print('Fizz')
+                print('Fizz\n')
             else:
                 if i % 5 = 0:
-                    print('Buzz')
+                    print('Buzz\n')
                 else:
-                    print('%i', i)
+                    print('%i\n', i)
     }
 }
 
