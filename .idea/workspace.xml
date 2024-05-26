@@ -4,8 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="bfe04db2-d8d8-4286-a2bd-6d3eaa2f1670" name="Changes" comment="rename examples/fib.hb">
-      <change afterPath="$PROJECT_DIR$/examples/fizzbuzz.hb" afterDir="false" />
+    <list default="true" id="bfe04db2-d8d8-4286-a2bd-6d3eaa2f1670" name="Changes" comment="fix fizzbuzz.hb">
+      <change afterPath="$PROJECT_DIR$/examples/bubble_sort.hb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/examples/hello_world.hb" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -209,22 +210,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1712664247780</updated>
-    </task>
-    <task id="LOCAL-00002" summary="add printf function">
-      <option name="closed" value="true" />
-      <created>1713442007753</created>
-      <option name="number" value="00002" />
-      <option name="presentableId" value="LOCAL-00002" />
-      <option name="project" value="LOCAL" />
-      <updated>1713442007753</updated>
-    </task>
-    <task id="LOCAL-00003" summary="add static compiling">
-      <option name="closed" value="true" />
-      <created>1713598364153</created>
-      <option name="number" value="00003" />
-      <option name="presentableId" value="LOCAL-00003" />
-      <option name="project" value="LOCAL" />
-      <updated>1713598364153</updated>
     </task>
     <task id="LOCAL-00004" summary="Add Modulus + parser bin_op refactor">
       <option name="closed" value="true" />
@@ -602,7 +587,23 @@
       <option name="project" value="LOCAL" />
       <updated>1716706482503</updated>
     </task>
-    <option name="localTasksCounter" value="51" />
+    <task id="LOCAL-00051" summary="add mod">
+      <option name="closed" value="true" />
+      <created>1716707110477</created>
+      <option name="number" value="00051" />
+      <option name="presentableId" value="LOCAL-00051" />
+      <option name="project" value="LOCAL" />
+      <updated>1716707110477</updated>
+    </task>
+    <task id="LOCAL-00052" summary="fix fizzbuzz.hb">
+      <option name="closed" value="true" />
+      <created>1716707241947</created>
+      <option name="number" value="00052" />
+      <option name="presentableId" value="LOCAL-00052" />
+      <option name="project" value="LOCAL" />
+      <updated>1716707241947</updated>
+    </task>
+    <option name="localTasksCounter" value="53" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -622,8 +623,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
-    <MESSAGE value="bug fixing" />
-    <MESSAGE value="reimplement lists" />
     <MESSAGE value="bitcast list to ptrs" />
     <MESSAGE value="add Structs" />
     <MESSAGE value="add Allocator" />
@@ -647,7 +646,9 @@
     <MESSAGE value="add benchmark" />
     <MESSAGE value="add heiabubulang.md" />
     <MESSAGE value="rename examples/fib.hb" />
-    <option name="LAST_COMMIT_MESSAGE" value="rename examples/fib.hb" />
+    <MESSAGE value="add mod" />
+    <MESSAGE value="fix fizzbuzz.hb" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix fizzbuzz.hb" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
