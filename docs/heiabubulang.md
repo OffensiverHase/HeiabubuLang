@@ -17,7 +17,7 @@ fun main():
     print('Hello, World')
 ```
 When running the JIT compiler this can be simplified even more:
-```python
+```kotlin
 print('Hello, World!')
 ```
  - `fun` is used to declare a function
