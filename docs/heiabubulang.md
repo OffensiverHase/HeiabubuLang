@@ -12,7 +12,7 @@ fun main() {
 }
 ```
 Since this function only consists of one statement this can be simplified:
-```python
+```kotlin
 fun main():
     print('Hello, World')
 ```
