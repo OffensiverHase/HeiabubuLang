@@ -148,6 +148,22 @@ fun main() {
  - if the return type is omitted 'null' is used
  - the body of a function uses the same rules as any other bodies
  - heiabubu does not support first class or higher order functions
+ - top level code is put into an auto-generated function called `load_filename`, that has return type of `int`:
+```
+# file called hello.hb
+fun main() {
+    print('Hello from main\n')
+    x <- load_hello()
+    print('load_hello() returned %i\n', x)
+}
+
+print('Hello from top level\n')
+return 1  # Default to 0 if ommitted
+```
+This will output
+>   Hello from main
+>   Hello from top level
+>   load_hello() returned 1
 
 ## Classes and Objects ##
 
