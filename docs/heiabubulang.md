@@ -161,9 +161,9 @@ print('Hello from top level\n')
 return 1  # Default to 0 if ommitted
 ```
 This will output
->   Hello from main
->   Hello from top level
->   load_hello() returned 1
+>   Hello from main  
+>   Hello from top level  
+>   load_hello() returned 1  
 
 ## Classes and Objects ##
 
