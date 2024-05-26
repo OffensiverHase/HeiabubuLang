@@ -200,7 +200,7 @@ class Person {
 p <- Person('john', 25)  # creates an instance of Person and then calls create
 print('And his name is ... %s\n', p.name)
 p.age <- 26
-print('Now %s's age is %i\n', p.name, p.age)
+print('Now %ss age is %i\n', p.name, p.age)
 p.make_programmer()
 print('Now he is a programmer: %i\n', p.programmer)  # bools are represented as 0 (false) and 1 (true)
 ```
