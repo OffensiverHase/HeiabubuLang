@@ -6,9 +6,15 @@ This is archieved by omitting some runtime checks, what sadly makes programming 
 
 ### Hello world ###
 Here is a simple programm that prints `Hello, World!`:
-```mojo
-fun main():
+```kotlin
+fun main() {
     print('Hello, World!')
+}
+```
+Since this function only consists of one statement this can be simplified:
+```python
+fun main():
+    print('Hello, World')
 ```
 When running the JIT compiler this can be simplified even more:
 ```python
