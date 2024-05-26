@@ -35,3 +35,12 @@ z: float <- 'hello'  # will fail compilation, because you cannot store a str to 
  - the assign operator is an arrow `<-`
  - variables are declared nearly like in python: `name <- value`
  - you can annotate variables with types `name: type <- value`
+
+Variables are deleted when the scope they were declared in is removed:
+```kotlin
+for i <- 0 .. 10 {
+    sq <- i * i
+    print('%i', sq)
+}
+print('at the end it was %i', sq)  # will throw an error during compilation
+```
