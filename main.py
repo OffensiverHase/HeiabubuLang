@@ -1,6 +1,9 @@
 import os
 import platform
+import shutil
 from sys import exit
+
+from termcolor import colored
 
 from Driver import start
 
@@ -10,6 +13,9 @@ from Driver import start
 def main() -> int:
     if platform.system() == 'Windows':
         os.system('color')
+    if shutil.which('gcc') is None:
+        print(colored('For now Heiabubu needs gcc installed', 'red'))
+        return 1
     return start()
 
 
