@@ -13,5 +13,5 @@ fun main() {
 ```
 When running the JIT compiler this can be simplified even more:
 ```python
-print('Hello, World!`
+print('Hello, World!')`
 ```
