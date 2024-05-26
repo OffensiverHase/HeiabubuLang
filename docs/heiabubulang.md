@@ -8,17 +8,17 @@ This is archieved by omitting some runtime checks, what sadly makes programming 
 Here is a simple programm that prints `Hello, World!`:
 ```kotlin
 fun main() {
-    print('Hello, World!')
+    print('Hello, World!\n')
 }
 ```
 Since this function only consists of one statement this can be simplified:
 ```kotlin
 fun main():
-    print('Hello, World')
+    print('Hello, World\n')
 ```
 When running the JIT compiler this can be simplified even more:
 ```kotlin
-print('Hello, World!')
+print('Hello, World!\n')
 ```
  - `fun` is used to declare a function
  - the `main()` function the entry point of your programm. If it's not there the JIT compiler will start at the top level
@@ -39,12 +39,12 @@ z: float <- 'hello'  # will fail compilation, because you cannot store a str to 
  - you can annotate variables with types `name: type <- value`
 
 Variables are deleted when the scope they were declared in is removed:
-```python
+```kotlin
 for i <- 0 .. 10 {
     sq <- i * i
-    print('%i', sq)
+    print('%i\n', sq)
 }
-print('at the end it was %i', sq)  # will throw an error during compilation
+print('at the end it was %i\n', sq)  # will throw an error during compilation
 ```
 
 ### Types ###
@@ -66,25 +66,25 @@ One really useful data structure is just a simple list or array.
 Heiabubu has still a very experimental approach to lists.
 You can't specify the size of a list, so it's best practise to initialise it with default values.
 Also Heiabubu has no index out of bounds error, so lists can lead to undefined behaviour sometimes
-```python
+```kotlin
 x <- []  # Not recommended, will not allocate any space for elements
 y <- [0,0,0,0]  # is better for a list with a size of 4
 x[0] <- 1  # Yet possible
 y[4]  # Possible aswell
 z: list<int> <- x + y  # Concat two lists is not implemented yet but is in progress
 ```
-Strings are also just a list of `byte`s, so everything that works with lists also applies to `str`
+Strings are also just a list of `byte`s, so everything that works with lists also applies to `str`.
 
 ## Control flow ##
 Like other programming languages Heiabubu is capable of changing the control flow on expressions being evaluated to true.
 
 ### If ###
-`if` statements are used to execute a block of code bsed on a condition
-```
+`if` statements are used to execute a block of code bsed on a condition.
+```kotlin
 if 1 = 1:
-    print('Your computer works just fine!')
+    print('Your computer works just fine!\n')
 else {
-    print('Your computer is broken!)
+    print('Your computer is broken\n!)
     return 1
 }
 ```
@@ -94,9 +94,42 @@ else {
  - the if block will be run if the condition evaluates to true, else the else block gets run
  - you don't have to specify an else block, the programm continues with the next statement after the if
 
-###
-    
+### While ###
+While is used to execuate a code block while a condition is `true`
+```kotlin
+a <- 0
+while a < 10 {
+    print('a is %i\n', a)
+    a <- a + 1
+}
+```
+ - the syntax for `while` statements is `while condition {body}`
+ - the same rules as on if and functions can be applied for a while body
+ - check smaller than with `<`
+ - while the condition is true the body is run
 
+### For ###
+For loops are used if you want to do a thing for a certain amount of times.
+The above example can be simplified as the following:
+```kotlin
+for a <- 0 .. 10:
+    print('a is %i\n', a)
+```
+you can also specify a step size.
+```kotlin
+for a <- 0 .. 10 step 2:
+    print('a is %i\n', a)
+```
+ - the syntax for `for` statements is `for name <- start .. to`
+ - you can specify step size like `for name <- start_value .. to_value step step_value`
+ - the same rules as on if, functions and `while` can be applied for a for body
+
+### Break and Continue ###
+In loops you can use the `break` and the `continue` statement.
+`break` will break out of the current loop and `continue` will continue with the next iteration.
+
+    
+## Functions ##
 ## Classes and Objects ##
 
 ## Operators ##
