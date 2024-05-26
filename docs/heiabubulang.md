@@ -27,7 +27,7 @@ print('Hello, World!')
 
 ### Variables ###
 Just like in every other language variables are used to store data. Variables are always mutable.
-```python
+```kotlin
 x <- 5 
 y: int <- x * 4
 z: float <- 'hello'  # will fail compilation, because you cannot store a str to a float
@@ -37,7 +37,7 @@ z: float <- 'hello'  # will fail compilation, because you cannot store a str to 
  - you can annotate variables with types `name: type <- value`
 
 Variables are deleted when the scope they were declared in is removed:
-```kotlin
+```python
 for i <- 0 .. 10 {
     sq <- i * i
     print('%i', sq)
