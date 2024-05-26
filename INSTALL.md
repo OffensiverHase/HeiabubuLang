@@ -7,9 +7,7 @@ A graphical installer is work in progress and will be released here soon
  - `gcc` (Will be fixed some time)
 
  1. Use the [Releases](https://github.com/OffensiverHase/HeiabubuLang/tags) section and download the version for your OS
- 2. Put the executable into your PATH
-    - [Windows]
-    - [Linux]
+ 2. Put the executable into your [PATH](https://gist.github.com/nex3/c395b2f8fd4b02068be37c961301caa7)
  4. Open a shell and type `heiabubu  --help` to get started
 
 ## Building from source ##
