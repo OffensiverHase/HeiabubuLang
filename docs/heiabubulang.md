@@ -262,5 +262,7 @@ If you want to write multiple statements in the same line, you can use a semicol
 
 
 
-[Jump to the top](https://github.com/OffensiverHase/HeiabubuLang/blob/master/docs/heiabubulang.md#heiabubu)
-](https://www.carsuk.net/wp-content/uploads/2009/07/Clarkson-Atom.jpg)
+
+[Jump to the top](https://github.com/OffensiverHase/HeiabubuLang/blob/master/docs/heiabubulang.md#Heiabubu)
+# Speed! #
+![Speed!](https://www.carsuk.net/wp-content/uploads/2009/07/Clarkson-Atom.jpg)
