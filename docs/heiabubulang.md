@@ -89,7 +89,8 @@ else {
 }
 ```
  - the syntax for `if` statements is `if condition {body}`
- - if the body of the if only contains one statement you can use a colon `:` like with function bodies
+ - if the body of the if only contains one statement you can use a colon `:` like with any other bodies
+ - bodies can not be empty, use the `pass` keyword to insert a no-op that will be removed during optimisation
  - you check for equality with a single equals `=`
  - the if block will be run if the condition evaluates to true, else the else block gets run
  - you don't have to specify an else block, the programm continues with the next statement after the if
@@ -205,8 +206,60 @@ p.make_programmer()
 print('Now he is a programmer: %i\n', p.programmer)  # bools are represented as 0 (false) and 1 (true)
 ```
 
+## Operators and Keywords ##
 
-## Operators ##
+### Arithmatic Operators ###
+ - `+` Addidtion
+ - `-` Subtraction
+ - `*` Multiplication
+ - `/` Division
+ - `^` Exponent
+ - `%` Modulus
+
+### Comparison Operators ###
+ - `<`  Less-than
+ - `>`  Greater than
+ - `<=` Less-equal
+ - `>=` Greater-equal
+ - `<>` Not-equal
+ - `=`  Equal
+
+### Assignment Operators ###
+ - `<-` Assign
+ - Work in progress
+
+### Prefix Operators ###
+ - `!` Not
+ - `-` Minus
+
+### Keywords ###
+ - `if` if statement declaration
+ - `else` else block declaration
+ - `for` for statement declaration
+ - `step` change step size of for loop
+ - `while` while statement declaration
+ - `fun` function declarations
+ - `return` return out of a function
+ - `break` break out of a loop
+ - `continue` continue with the next loop iteration
+ - `class` class declaration
+ - `pass` no-op statement for empty blocks
+ - `import` import other files
 
 ## Other ##
-;
+
+### Imports ###
+Import other files, for now they have to be in the same directory.
+```python
+import other  # will import ./other.hb
+
+fun main():
+    function_in_other_file()
+```
+### Newlines and Whitespace ###
+Statements are finished with a newline character, but else newlines and whitespaces shouldn't matter.
+If you want to write multiple statements in the same line, you can use a semicolon `;`
+
+
+
+[Jump to the top]()
