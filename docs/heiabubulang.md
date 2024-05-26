@@ -27,7 +27,7 @@ print('Hello, World!')
 
 ### Variables ###
 Just like in every other language variables are used to store data. Variables are always mutable.
-```kotlin
+```python
 x <- 5 
 y: int <- x * 4
 z: float <- 'hello'  # will fail compilation, because you cannot store a str to a float
