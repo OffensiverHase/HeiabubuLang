@@ -50,7 +50,7 @@ print('at the end it was %i\n', sq)  # will throw an error during compilation
 ### Types ###
 Every variable in Heiabubu has a data type, but for variables Heiabubu can always infer the data type.
 In the previous example you don't have to write `sq: int <- i * i`, because Heiabubu sees that i is an `int` and an `int` times an `int` is still an int.
-Yet some times it's good practise to specify the type yourself, for better readability   
+Yet some times it's good practise to specify the type yourself, for better readability.   
 Heiabubu has the following types:
  - `int` A basic type for integer values with 32 bits
  - `byte` A type for integer values with 8 bits (Not fully implemented yet)
@@ -95,7 +95,7 @@ else {
  - you don't have to specify an else block, the programm continues with the next statement after the if
 
 ### While ###
-While is used to execuate a code block while a condition is `true`
+While is used to execuate a code block while a condition is `true`:
 ```python
 a <- 0
 while a < 10 {
@@ -115,7 +115,7 @@ The above example can be simplified as the following:
 for a <- 0 .. 10:
     print('a is %i\n', a)
 ```
-you can also specify a step size.
+you can also specify a step size:
 ```python
 for a <- 0 .. 10 step 2:
     print('a is %i\n', a)
@@ -130,7 +130,7 @@ In loops you can use the `break` or the `continue` statement.
 
     
 ## Functions ##
-You can declare functions with the `fun` keyword
+You can declare functions with the `fun` keyword:
 ```python
 fun plus_one(number: int) -> int:
     return number + 1
@@ -149,7 +149,7 @@ fun main() {
  - the body of a function uses the same rules as any other bodies
  - heiabubu does not support first class or higher order functions
  - top level code is put into an auto-generated function called `load_filename`, that has return type of `int`:
-```
+```python
 # file called hello.hb
 fun main() {
     print('Hello from main\n')
@@ -160,13 +160,53 @@ fun main() {
 print('Hello from top level\n')
 return 1  # Default to 0 if ommitted
 ```
-This will output
+
+This will output:
 >   Hello from main  
 >   Hello from top level  
 >   load_hello() returned 1  
 
 ## Classes and Objects ##
+Heiabubu supports object-oriented programming with classes and objects.
+Objects are useful for storing data in your program.
+Classes allow you to declare a set of characteristics for an object.
+When you create objects from a class, you can save time and effort because you don't have to declare these characteristics every time.
+### Classes ###
+You can declare classes with the `class` keyword:
+```python
+class Person {
+    name: str
+    age: int
+    programmmer: bool
+    
+    fun create(name: str, age: int) {
+        self.name = name
+        self.age = age
+    }
+    
+    fun make_programmer():
+        self.programmer = true
+}
+```
+ - classes can have properties and methods
+ - declare properties with `name: type`
+ - declare methods just like normal functions
+ - self referres to the instance, just like in python
+ - method create is used as the constructor and is added automatically with empty body if omitted
+ - uninitialised properties contain undefined and may lead to undefined behaviour
+
+### Objects ###
+```python
+p <- Person('john', 25)  # creates an instance of Person and then calls create
+print('And his name is ... %s\n', p.name)
+p.age <- 26
+print('Now %s's age is %i\n', p.name, p.age)
+p.make_programmer()
+print('Now he is a programmer: %i\n', p.programmer)  # bools are represented as 0 (false) and 1 (true)
+```
+
 
 ## Operators ##
 
 ## Other ##
+;
