@@ -76,8 +76,26 @@ z: list<int> <- x + y  # Concat two lists is not implemented yet but is in progr
 Strings are also just a list of `byte`s, so everything that works with lists also applies to `str`
 
 ## Control flow ##
-Like other programming languages Heiabub is capable of changing the control flow on expressions being evaluated to true.
+Like other programming languages Heiabubu is capable of changing the control flow on expressions being evaluated to true.
 
+### If ###
+`if` statements are used to execute a block of code bsed on a condition
+```
+if 1 = 1:
+    print('Your computer works just fine!')
+else {
+    print('Your computer is broken!)
+    return 1
+}
+```
+ - the syntax for `if` statements is `if condition {body}`
+ - if the body of the if only contains one statement you can use a colon `:` like with function bodies
+ - you check for equality with a single equals `=`
+ - the if block will be run if the condition evaluates to true, else the else block gets run
+ - you don't have to specify an else block, the programm continues with the next statement after the if
+
+###
+    
 
 ## Classes and Objects ##
 
